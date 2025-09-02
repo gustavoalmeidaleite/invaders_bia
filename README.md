@@ -10,6 +10,7 @@ Este é um protótipo inicial do clássico jogo Space Invaders, desenvolvido em 
 - ✅ **Sistema de Estados** (Menu, Jogando, Game Over)
 - ✅ **Sistema de Pontuação** com diferentes valores por tipo de inimigo
 - ✅ **Sistema de Vidas** (3 vidas iniciais)
+- ✅ **Colisão entre Projéteis** com efeitos visuais de explosão
 - ✅ **HUD** com pontuação, vidas e controles
 - ✅ **Suporte a Sprites** com fallback para retângulos coloridos
 - ✅ **3 Tipos de Inimigos** com sprites diferentes
@@ -101,6 +102,8 @@ space_invaders_prototype.py
 - `sprites/` - Diretório para imagens dos sprites
 - `SPRITE_REQUIREMENTS.md` - Lista detalhada de sprites necessários
 - `MENU_E_GAME_OVER.md` - Documentação das funcionalidades de menu e game over
+- `MOVIMENTO_COMPLETO.md` - Documentação do sistema de movimento em 4 direções
+- `COLISAO_PROJETEIS.md` - Documentação do sistema de colisão entre projéteis
 - `requirements.txt` - Dependências do projeto
 
 ## Sistema de Pontuação
@@ -108,6 +111,7 @@ space_invaders_prototype.py
 - **Inimigo Tipo 1** (linha superior): 30 pontos
 - **Inimigo Tipo 2** (linha média): 20 pontos
 - **Inimigo Tipo 3** (linha inferior): 10 pontos
+- **Interceptação de Projétil**: 5 pontos bônus
 
 ## Próximos Passos
 

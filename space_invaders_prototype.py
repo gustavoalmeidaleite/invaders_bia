@@ -88,6 +88,65 @@ def criar_sprite_fallback(largura, altura, cor):
     sprite.fill(cor)
     return sprite
 
+class EfeitoExplosao:
+    """Classe para representar efeitos de explosão quando projéteis colidem."""
+
+    def __init__(self, x, y, tamanho=20):
+        self.x = x
+        self.y = y
+        self.tamanho_inicial = tamanho
+        self.tamanho_atual = tamanho
+        self.tempo_vida = 300  # milissegundos
+        self.tempo_criacao = pygame.time.get_ticks()
+        self.ativo = True
+
+        # Carrega sprite de explosão ou usa fallback
+        self.sprite = carregar_sprite("explosion.png", tamanho, tamanho)
+
+        # Cores para efeito de fallback (gradiente de explosão)
+        self.cores_explosao = [
+            (255, 255, 255),  # Branco (centro)
+            (255, 255, 0),    # Amarelo
+            (255, 165, 0),    # Laranja
+            (255, 0, 0),      # Vermelho
+            (128, 0, 0)       # Vermelho escuro
+        ]
+
+    def atualizar(self):
+        """Atualiza o efeito de explosão."""
+        tempo_atual = pygame.time.get_ticks()
+        tempo_decorrido = tempo_atual - self.tempo_criacao
+
+        if tempo_decorrido >= self.tempo_vida:
+            self.ativo = False
+        else:
+            # Efeito de expansão e fade
+            progresso = tempo_decorrido / self.tempo_vida
+            self.tamanho_atual = self.tamanho_inicial * (1 + progresso * 0.5)
+
+    def desenhar(self, tela):
+        """Desenha o efeito de explosão."""
+        if not self.ativo:
+            return
+
+        if self.sprite:
+            # Redimensiona o sprite baseado no tamanho atual
+            sprite_escalado = pygame.transform.scale(self.sprite,
+                                                   (int(self.tamanho_atual), int(self.tamanho_atual)))
+            pos_x = self.x - self.tamanho_atual // 2
+            pos_y = self.y - self.tamanho_atual // 2
+            tela.blit(sprite_escalado, (pos_x, pos_y))
+        else:
+            # Efeito de fallback: círculos concêntricos
+            tempo_atual = pygame.time.get_ticks()
+            tempo_decorrido = tempo_atual - self.tempo_criacao
+            progresso = tempo_decorrido / self.tempo_vida
+
+            for i, cor in enumerate(self.cores_explosao):
+                raio = int(self.tamanho_atual * (1 - i * 0.2) * (1 - progresso))
+                if raio > 0:
+                    pygame.draw.circle(tela, cor, (int(self.x), int(self.y)), raio)
+
 class Menu:
     """Classe para gerenciar o menu principal do jogo."""
 
@@ -398,6 +457,9 @@ class Jogo:
         self.pontuacao = 0
         self.vidas = 3
 
+        # Lista de efeitos de explosão
+        self.efeitos_explosao = []
+
         # Inicializa componentes do jogo
         self.inicializar_jogo()
 
@@ -520,6 +582,9 @@ class Jogo:
         """
         Método para verificar colisões entre tiros e inimigos/jogador.
         """
+        # NOVA FUNCIONALIDADE: Colisão entre projéteis
+        self.verificar_colisao_projeteis()
+
         # Tiros do jogador acertando inimigos
         for tiro in self.jogador.tiros[:]:
             for inimigo in self.inimigos[:]:
@@ -548,6 +613,40 @@ class Jogo:
                 self.estado = ESTADO_GAME_OVER
                 break
 
+    def verificar_colisao_projeteis(self):
+        """
+        Verifica colisões entre projéteis do jogador e dos inimigos.
+        Cria efeitos de explosão quando há colisão.
+        """
+        for tiro_jogador in self.jogador.tiros[:]:
+            for tiro_inimigo in self.tiros_inimigos[:]:
+                if tiro_jogador.rect.colliderect(tiro_inimigo.rect):
+                    # Calcula posição central da colisão
+                    pos_x = (tiro_jogador.x + tiro_inimigo.x) // 2
+                    pos_y = (tiro_jogador.y + tiro_inimigo.y) // 2
+
+                    # Cria efeito de explosão
+                    explosao = EfeitoExplosao(pos_x, pos_y, tamanho=15)
+                    self.efeitos_explosao.append(explosao)
+
+                    # Remove ambos os projéteis
+                    self.jogador.tiros.remove(tiro_jogador)
+                    self.tiros_inimigos.remove(tiro_inimigo)
+
+                    # Adiciona pontos bônus por interceptar projétil inimigo
+                    self.pontuacao += 5
+
+                    break  # Sai do loop interno para evitar erro de lista modificada
+
+    def atualizar_efeitos_explosao(self):
+        """
+        Atualiza todos os efeitos de explosão e remove os que expiraram.
+        """
+        for efeito in self.efeitos_explosao[:]:
+            efeito.atualizar()
+            if not efeito.ativo:
+                self.efeitos_explosao.remove(efeito)
+
     def atualizar(self):
         """
         Método para atualizar o estado do jogo.
@@ -559,6 +658,7 @@ class Jogo:
             self.inimigos_atiram()
             self.atualizar_tiros_inimigos()
             self.verificar_colisoes()
+            self.atualizar_efeitos_explosao()
 
             # Reinicia o nível se todos os inimigos forem destruídos
             if len(self.inimigos) == 0:
@@ -594,6 +694,10 @@ class Jogo:
         # Desenha tiros dos inimigos
         for tiro in self.tiros_inimigos:
             tiro.desenhar(self.tela)
+
+        # Desenha efeitos de explosão
+        for efeito in self.efeitos_explosao:
+            efeito.desenhar(self.tela)
 
         # Desenha HUD (pontuação e vidas)
         self.desenhar_hud()

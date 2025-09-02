@@ -5,7 +5,7 @@ This document lists all the sprite images that need to be created and uploaded t
 ## Directory Structure
 All sprites should be placed in the `sprites/` directory in the project root.
 
-## Required Sprite Images
+## Required Sprite Images (8 total)
 
 ### 1. Player Ship
 - **Filename**: `player_ship.png`
@@ -73,6 +73,15 @@ All sprites should be placed in the `sprites/` directory in the project root.
 - **Color Scheme**: Dark blue/black with white stars
 - **Style**: Can be static starfield or subtle nebula
 
+### 5. Explosion Effect
+- **Filename**: `explosion.png`
+- **Purpose**: Visual effect when projectiles collide
+- **Recommended Size**: 20x20 pixels
+- **Format**: PNG with transparency
+- **Description**: Small explosion/spark effect
+- **Color Scheme**: Bright colors (white, yellow, orange, red)
+- **Animation**: Static sprite (expansion handled by code)
+
 ## Technical Specifications
 
 ### General Requirements
@@ -95,6 +104,7 @@ The game includes fallback mechanisms:
 - Player bullets: Yellow rectangle (255, 255, 0)
 - Enemy bullets: Light red rectangle (255, 100, 100)
 - Background: Black fill (0, 0, 0)
+- Explosion effect: Concentric colored circles (white, yellow, orange, red)
 
 ## Optional Enhancements (Future)
 These sprites are not currently implemented but could be added:
