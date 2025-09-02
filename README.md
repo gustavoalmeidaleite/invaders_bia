@@ -5,10 +5,23 @@ Este é um protótipo inicial do clássico jogo Space Invaders, desenvolvido em 
 ## Características do Protótipo
 
 ### Funcionalidades Implementadas
-- ✅ Tela preta de fundo (800x600 pixels)
-- ✅ Quadrado verde representando a nave do jogador
-- ✅ Movimento horizontal da nave (esquerda/direita)
-- ✅ Controles responsivos usando as setas ou teclas A/D
+- ✅ **Menu Principal** com opções de iniciar e sair
+- ✅ **Tela de Game Over** com opções de reiniciar, menu ou sair
+- ✅ **Sistema de Estados** (Menu, Jogando, Game Over)
+- ✅ **Sistema de Pontuação** com diferentes valores por tipo de inimigo
+- ✅ **Sistema de Vidas** (3 vidas iniciais)
+- ✅ **HUD** com pontuação, vidas e controles
+- ✅ **Suporte a Sprites** com fallback para retângulos coloridos
+- ✅ **3 Tipos de Inimigos** com sprites diferentes
+- ✅ **Tiros do Jogador e Inimigos** com sprites específicos
+- ✅ **Background Customizável** com suporte a imagem de fundo
+- ✅ Tela de fundo (800x600 pixels)
+- ✅ Nave do jogador com sprite ou fallback verde
+- ✅ **Movimento completo da nave** (esquerda/direita/cima/baixo)
+- ✅ Sistema de tiro contínuo
+- ✅ Inimigos que se movem e atiram
+- ✅ Detecção de colisões
+- ✅ Controles responsivos
 
 ### Conceitos de POO Aplicados
 
@@ -50,9 +63,19 @@ python space_invaders_prototype.py
 ```
 
 ### Controles
+
+#### Menu e Game Over:
+- **Seta Cima/Baixo** ou **W/S**: Navegar nas opções
+- **ENTER** ou **ESPAÇO**: Selecionar opção
+- **ESC**: Sair do jogo (menu) ou voltar ao menu (game over)
+
+#### Durante o Jogo:
 - **Seta Esquerda** ou **A**: Move a nave para a esquerda
 - **Seta Direita** ou **D**: Move a nave para a direita
-- **ESC** ou **X**: Fechar o jogo
+- **Seta Cima** ou **W**: Move a nave para cima
+- **Seta Baixo** ou **S**: Move a nave para baixo
+- **Z**: Atirar (pode segurar para tiro contínuo)
+- **ESC**: Voltar ao menu principal
 
 ## Estrutura do Código
 
@@ -72,16 +95,30 @@ space_invaders_prototype.py
     └── executar()          # Loop principal
 ```
 
+## Arquivos do Projeto
+
+- `space_invaders_prototype.py` - Código principal do jogo
+- `sprites/` - Diretório para imagens dos sprites
+- `SPRITE_REQUIREMENTS.md` - Lista detalhada de sprites necessários
+- `MENU_E_GAME_OVER.md` - Documentação das funcionalidades de menu e game over
+- `requirements.txt` - Dependências do projeto
+
+## Sistema de Pontuação
+
+- **Inimigo Tipo 1** (linha superior): 30 pontos
+- **Inimigo Tipo 2** (linha média): 20 pontos
+- **Inimigo Tipo 3** (linha inferior): 10 pontos
+
 ## Próximos Passos
 
-Este protótipo serve como base para implementar:
-- [ ] Inimigos (invasores espaciais)
-- [ ] Sistema de tiro
-- [ ] Detecção de colisões
-- [ ] Sistema de pontuação
-- [ ] Múltiplas vidas
-- [ ] Níveis de dificuldade
-- [ ] Efeitos sonoros
+Funcionalidades que podem ser adicionadas:
+- [ ] Efeitos sonoros e música
+- [ ] Animações de explosão
+- [ ] Power-ups especiais
+- [ ] Sistema de high scores
+- [ ] Múltiplos níveis
+- [ ] Configurações de dificuldade
+- [ ] Tela de créditos
 
 ## Conceitos de POO Demonstrados
 
