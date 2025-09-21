@@ -8,19 +8,6 @@ class ProjetilBusiness:
         self.projeteis_inimigo = projeteis_inimigo
         self.altura_tela = altura_tela
 
-    def mover_projeteis(self):
-        # Mover projéteis do jogador
-        for projetil in self.projeteis_jogador[:]:
-            projetil.mover()
-            if projetil.y < -projetil.altura:
-                self.projeteis_jogador.remove(projetil)
-
-        # Mover projéteis dos inimigos
-        for projetil in self.projeteis_inimigo[:]:
-            projetil.mover()
-            if projetil.y > self.altura_tela:
-                self.projeteis_inimigo.remove(projetil)
-
     def verificar_colisao_projeteis(self, efeitos_explosao, pontuacao):
         """
         Verifica colisões entre projéteis do jogador e dos inimigos.

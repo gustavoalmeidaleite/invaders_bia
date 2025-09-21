@@ -8,19 +8,6 @@ class InimigoBusiness:
         self.inimigos = inimigos
         self.velocidade_base = velocidade_base
 
-    def mover_inimigos(self):
-        mover_baixo = False
-        for inimigo in self.inimigos:
-            inimigo.x += self.velocidade_base * inimigo.direcao
-            inimigo.rect.x = inimigo.x
-            if inimigo.x <= 0 or inimigo.x >= LARGURA_TELA - inimigo.largura:
-                mover_baixo = True
-        if mover_baixo:
-            for inimigo in self.inimigos:
-                inimigo.direcao *= -1
-                inimigo.y += 20
-                inimigo.rect.y = inimigo.y
-
     def atirar_aleatorio(self):
         if self.inimigos:
             atirador = random.choice(self.inimigos)

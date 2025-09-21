@@ -8,39 +8,6 @@ class JogadorBusiness:
         self.jogador = jogador
         self.velocidade = velocidade if velocidade is not None else jogador.velocidade
 
-    def mover_esquerda(self):
-        """
-        Método para mover o jogador para a esquerda.
-        Demonstra encapsulamento: o método controla como o estado do objeto é alterado.
-        """
-        if self.jogador.x > 0:
-            self.jogador.x -= self.velocidade
-            self.jogador.rect.x = self.jogador.x
-    
-    def mover_direita(self):
-        """
-        Método para mover o jogador para a direita.
-        """
-        if self.jogador.x < LARGURA_TELA - self.jogador.largura:
-            self.jogador.x += self.velocidade
-            self.jogador.rect.x = self.jogador.x
-
-    def mover_cima(self):
-        """
-        Método para mover o jogador para cima.
-        """
-        if self.jogador.y > 0:
-            self.jogador.y -= self.velocidade
-            self.jogador.rect.y = self.jogador.y
-
-    def mover_baixo(self):
-        """
-        Método para mover o jogador para baixo.
-        """
-        if self.jogador.y < ALTURA_TELA - self.jogador.altura:
-            self.jogador.y += self.velocidade
-            self.jogador.rect.y = self.jogador.y
-
     def atirar(self):
         """
         Método para disparar um tiro.

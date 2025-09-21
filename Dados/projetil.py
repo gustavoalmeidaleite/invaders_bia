@@ -28,6 +28,7 @@ class Projetil:
 
     def desenhar(self, tela):
         if self.sprite:
-            tela.blit(self.sprite, (self.x, self.y))
+            sprite_rect = self.sprite.get_rect(center=self.rect.center)
+            tela.blit(self.sprite, sprite_rect)
         else:
             pygame.draw.rect(tela, self.cor_fallback, self.rect)

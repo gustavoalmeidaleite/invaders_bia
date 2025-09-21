@@ -170,6 +170,11 @@ class Jogo:
         # Inicializa componentes do jogo
         self.inicializar_jogo()
 
+        # Velocidades para movimento
+        self.velocidade_jogador = VELOCIDADE_JOGADOR
+        self.velocidade_inimigo = VELOCIDADE_INIMIGO
+        self.velocidade_tiro = VELOCIDADE_TIRO
+
     def inicializar_jogo(self):
         """Inicializa ou reinicializa os componentes do jogo."""
         # Composição: o jogo contém um jogador
@@ -246,14 +251,14 @@ class Jogo:
         teclas = pygame.key.get_pressed()
         # Movimento horizontal
         if teclas[pygame.K_LEFT] or teclas[pygame.K_a]:
-            self.jogador_business.mover_esquerda()
+            self.mover_jogador_esquerda()
         if teclas[pygame.K_RIGHT] or teclas[pygame.K_d]:
-            self.jogador_business.mover_direita()
+            self.mover_jogador_direita()
         # Movimento vertical
         if teclas[pygame.K_UP] or teclas[pygame.K_w]:
-            self.jogador_business.mover_cima()
+            self.mover_jogador_cima()
         if teclas[pygame.K_DOWN] or teclas[pygame.K_s]:
-            self.jogador_business.mover_baixo()
+            self.mover_jogador_baixo()
         # Atira segurando Z
         if teclas[pygame.K_z]:
             agora = pygame.time.get_ticks()
@@ -261,6 +266,90 @@ class Jogo:
                 self.jogador_business.atirar()
                 self.projeteis_jogador.append(self.jogador.tiros[-1])
                 self.tempo_ultimo_tiro = agora
+
+    def mover_jogador_esquerda(self):
+        """
+        Move o jogador para a esquerda com validações de movimento.
+        """
+        try:
+            if self.jogador.x > 0:
+                self.jogador.x -= self.velocidade_jogador
+                self.jogador.rect.x = self.jogador.x
+        except Exception as e:
+            print(f"Erro ao mover jogador para esquerda: {e}")
+
+    def mover_jogador_direita(self):
+        """
+        Move o jogador para a direita com validações de movimento.
+        """
+        try:
+            if self.jogador.x < LARGURA_TELA - self.jogador.largura:
+                self.jogador.x += self.velocidade_jogador
+                self.jogador.rect.x = self.jogador.x
+        except Exception as e:
+            print(f"Erro ao mover jogador para direita: {e}")
+
+    def mover_jogador_cima(self):
+        """
+        Move o jogador para cima com validações de movimento.
+        """
+        try:
+            if self.jogador.y > 0:
+                self.jogador.y -= self.velocidade_jogador
+                self.jogador.rect.y = self.jogador.y
+        except Exception as e:
+            print(f"Erro ao mover jogador para cima: {e}")
+
+    def mover_jogador_baixo(self):
+        """
+        Move o jogador para baixo com validações de movimento.
+        """
+        try:
+            if self.jogador.y < ALTURA_TELA - self.jogador.altura:
+                self.jogador.y += self.velocidade_jogador
+                self.jogador.rect.y = self.jogador.y
+        except Exception as e:
+            print(f"Erro ao mover jogador para baixo: {e}")
+
+    def mover_inimigos(self):
+        """
+        Move todos os inimigos lateralmente e para baixo quando atingem as bordas.
+        Inclui validações de movimento e atualizações de estado.
+        """
+        try:
+            mover_baixo = False
+            for inimigo in self.inimigos:
+                inimigo.x += self.velocidade_inimigo * inimigo.direcao
+                inimigo.rect.x = inimigo.x
+                if inimigo.x <= 0 or inimigo.x >= LARGURA_TELA - inimigo.largura:
+                    mover_baixo = True
+            if mover_baixo:
+                for inimigo in self.inimigos:
+                    inimigo.direcao *= -1
+                    inimigo.y += 20
+                    inimigo.rect.y = inimigo.y
+        except Exception as e:
+            print(f"Erro ao mover inimigos: {e}")
+
+    def mover_projeteis(self):
+        """
+        Move todos os projéteis (jogador e inimigos) e remove os que saíram da tela.
+        Inclui validações de movimento e atualizações de estado.
+        """
+        try:
+            # Mover projéteis do jogador
+            for projetil in self.projeteis_jogador[:]:
+                projetil.mover()
+                if projetil.y < -projetil.altura:
+                    self.projeteis_jogador.remove(projetil)
+
+            # Mover projéteis dos inimigos
+            for projetil in self.projeteis_inimigo[:]:
+                projetil.mover()
+                if projetil.y > ALTURA_TELA:
+                    self.projeteis_inimigo.remove(projetil)
+        except Exception as e:
+            print(f"Erro ao mover projéteis: {e}")
 
     def inimigos_atiram(self):
         """
@@ -313,9 +402,8 @@ class Jogo:
         Método para atualizar o estado do jogo.
         """
         if self.estado == ESTADO_JOGANDO:
-            self.inimigo_business.mover_inimigos()
-            self.jogador_business.atualizar_tiros()
-            self.projetil_business.mover_projeteis()
+            self.mover_inimigos()
+            self.mover_projeteis()
             self.inimigos_atiram()
             self.verificar_colisoes()
             self.atualizar_efeitos_explosao()

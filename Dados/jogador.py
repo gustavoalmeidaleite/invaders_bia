@@ -29,6 +29,7 @@ class Jogador:
         Demonstra abstração: esconde os detalhes de como o desenho é feito.
         """
         if self.sprite:
-            tela.blit(self.sprite, (self.x, self.y))
+            sprite_rect = self.sprite.get_rect(center=self.rect.center)
+            tela.blit(self.sprite, sprite_rect)
         else:
             pygame.draw.rect(tela, COR_JOGADOR, self.rect)
