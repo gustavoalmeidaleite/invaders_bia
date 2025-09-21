@@ -1,5 +1,5 @@
 import pygame
-from projetil import Projetil
+from Dados.projetil import Projetil
 from utils import ALTURA_TELA, EfeitoExplosao
 
 class ProjetilBusiness:

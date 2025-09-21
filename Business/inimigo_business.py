@@ -1,6 +1,6 @@
 import random
-from inimigo import Inimigo
-from projetil import Projetil
+from Dados.inimigo import Inimigo
+from Dados.projetil import Projetil
 from utils import LARGURA_TELA, VELOCIDADE_INIMIGO
 
 class InimigoBusiness:

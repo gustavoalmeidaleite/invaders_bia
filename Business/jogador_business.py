@@ -1,6 +1,6 @@
 import pygame
-from jogador import Jogador
-from projetil import Projetil
+from Dados.jogador import Jogador
+from Dados.projetil import Projetil
 from utils import LARGURA_TELA, ALTURA_TELA
 
 class JogadorBusiness:

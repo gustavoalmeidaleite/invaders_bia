@@ -1,11 +1,11 @@
 import pygame
 import sys
-from jogador import Jogador
-from jogador_business import JogadorBusiness
-from inimigo import Inimigo
-from inimigo_business import InimigoBusiness
-from projetil_business import ProjetilBusiness
-from pontuacao import Pontuacao
+from Dados.jogador import Jogador
+from Business.jogador_business import JogadorBusiness
+from Dados.inimigo import Inimigo
+from Business.inimigo_business import InimigoBusiness
+from Business.projetil_business import ProjetilBusiness
+from Dados.pontuacao import Pontuacao
 from utils import *
 
 class Menu:
