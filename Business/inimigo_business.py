@@ -25,13 +25,13 @@ class InimigoBusiness:
         """
         Regra de negócio: Movimento dos inimigos em formação.
         Move lateralmente e desce quando atinge as bordas.
+        Agora usa properties que incluem validação.
         """
         mover_baixo = False
 
         # Primeiro, move todos os inimigos lateralmente
         for inimigo in self.inimigos:
             inimigo.x += self.velocidade_base * inimigo.direcao
-            inimigo.rect.x = inimigo.x
 
             # Verifica se algum inimigo atingiu a borda
             if inimigo.x <= 0 or inimigo.x >= largura_tela - inimigo.largura:
@@ -40,6 +40,5 @@ class InimigoBusiness:
         # Se algum inimigo atingiu a borda, todos mudam direção e descem
         if mover_baixo:
             for inimigo in self.inimigos:
-                inimigo.direcao *= -1  # Inverte direção
-                inimigo.y += 20        # Desce uma linha
-                inimigo.rect.y = inimigo.y
+                inimigo.direcao *= -1  # Inverte direção usando property
+                inimigo.y += 20        # Desce uma linha usando property

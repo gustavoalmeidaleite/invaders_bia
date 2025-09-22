@@ -84,22 +84,36 @@ def criar_sprite_fallback(largura, altura, cor):
     return sprite
 
 class EfeitoExplosao:
-    """Classe para representar efeitos de explosão quando projéteis colidem."""
+    """
+    Classe para representar efeitos de explosão quando projéteis colidem.
+    Implementa encapsulamento completo dos atributos com properties.
+    Segue os princípios das aulas do Dr. Edson Nascimento.
+    """
 
-    def __init__(self, x, y, tamanho=20):
-        self.x = x
-        self.y = y
-        self.tamanho_inicial = tamanho
-        self.tamanho_atual = tamanho
-        self.tempo_vida = 300  # milissegundos
-        self.tempo_criacao = pygame.time.get_ticks()
-        self.ativo = True
+    def __init__(self, x: int, y: int, tamanho: int = 20):
+        """
+        Construtor da classe EfeitoExplosao.
+        Inicializa os atributos privados do efeito.
+
+        Args:
+            x (int): Posição horizontal da explosão
+            y (int): Posição vertical da explosão
+            tamanho (int): Tamanho inicial da explosão
+        """
+        # Atributos privados (encapsulamento)
+        self.__x = x
+        self.__y = y
+        self.__tamanho_inicial = tamanho
+        self.__tamanho_atual = tamanho
+        self.__tempo_vida = 300  # milissegundos
+        self.__tempo_criacao = pygame.time.get_ticks()
+        self.__ativo = True
 
         # Carrega sprite de explosão ou usa fallback
-        self.sprite = carregar_sprite("explosion.png", tamanho, tamanho)
+        self.__sprite = carregar_sprite("explosion.png", tamanho, tamanho)
 
         # Cores para efeito de fallback (gradiente de explosão)
-        self.cores_explosao = [
+        self.__cores_explosao = [
             (255, 255, 255),  # Branco (centro)
             (255, 255, 0),    # Amarelo
             (255, 165, 0),    # Laranja
@@ -107,15 +121,72 @@ class EfeitoExplosao:
             (128, 0, 0)       # Vermelho escuro
         ]
 
-    def atualizar(self):
-        """Atualiza o efeito de explosão."""
-        tempo_atual = pygame.time.get_ticks()
-        tempo_decorrido = tempo_atual - self.tempo_criacao
+    # Properties para X (somente leitura)
+    @property
+    def x(self) -> int:
+        """Getter para posição X da explosão (somente leitura)."""
+        return self.__x
 
-        if tempo_decorrido >= self.tempo_vida:
-            self.ativo = False
+    # Properties para Y (somente leitura)
+    @property
+    def y(self) -> int:
+        """Getter para posição Y da explosão (somente leitura)."""
+        return self.__y
+
+    # Properties para tamanho_inicial (somente leitura)
+    @property
+    def tamanho_inicial(self) -> int:
+        """Getter para tamanho inicial da explosão (somente leitura)."""
+        return self.__tamanho_inicial
+
+    # Properties para tamanho_atual (somente leitura)
+    @property
+    def tamanho_atual(self) -> float:
+        """Getter para tamanho atual da explosão (somente leitura)."""
+        return self.__tamanho_atual
+
+    # Properties para tempo_vida (somente leitura)
+    @property
+    def tempo_vida(self) -> int:
+        """Getter para tempo de vida da explosão (somente leitura)."""
+        return self.__tempo_vida
+
+    # Properties para tempo_criacao (somente leitura)
+    @property
+    def tempo_criacao(self) -> int:
+        """Getter para tempo de criação da explosão (somente leitura)."""
+        return self.__tempo_criacao
+
+    # Properties para ativo (somente leitura)
+    @property
+    def ativo(self) -> bool:
+        """Getter para status ativo da explosão (somente leitura)."""
+        return self.__ativo
+
+    # Properties para sprite (somente leitura)
+    @property
+    def sprite(self):
+        """Getter para sprite da explosão (somente leitura)."""
+        return self.__sprite
+
+    # Properties para cores_explosao (somente leitura)
+    @property
+    def cores_explosao(self) -> list:
+        """Getter para cores da explosão (retorna cópia para proteção)."""
+        return self.__cores_explosao.copy()
+
+    def atualizar(self):
+        """
+        Atualiza o efeito de explosão.
+        Modifica atributos internos de forma controlada.
+        """
+        tempo_atual = pygame.time.get_ticks()
+        tempo_decorrido = tempo_atual - self.__tempo_criacao
+
+        if tempo_decorrido >= self.__tempo_vida:
+            self.__ativo = False
         else:
             # Efeito de expansão e fade
-            progresso = tempo_decorrido / self.tempo_vida
-            self.tamanho_atual = self.tamanho_inicial * (1 + progresso * 0.5)
+            progresso = tempo_decorrido / self.__tempo_vida
+            self.__tamanho_atual = self.__tamanho_inicial * (1 + progresso * 0.5)
 

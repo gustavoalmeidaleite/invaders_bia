@@ -17,58 +17,53 @@ class JogadorBusiness:
         """
         Regra de negócio: Disparar um projétil.
         Calcula posição correta e cria novo projétil.
+        Agora usa properties e métodos controlados.
         """
         tiro_x = self.jogador.x + self.jogador.largura // 2 - 3
         tiro_y = self.jogador.y
         novo_tiro = Projetil(tiro_x, tiro_y)
-        self.jogador.tiros.append(novo_tiro)
+        self.jogador.adicionar_tiro(novo_tiro)
 
     def atualizar_tiros(self):
         """
         Regra de negócio: Atualizar posição dos tiros e remover os que saíram da tela.
-        Agora utiliza o método correto de movimento dos projéteis.
+        Agora utiliza properties e métodos controlados.
         """
-        for tiro in self.jogador.tiros[:]:
+        # Obtém cópia da lista de tiros para iteração segura
+        tiros_atuais = self.jogador.tiros
+        for tiro in tiros_atuais[:]:
             # Aplica movimento usando a lógica correta
             nova_y = tiro.y - VELOCIDADE_TIRO  # Tiros do jogador sobem
             tiro.atualizar_posicao(tiro.x, nova_y)
 
-            # Remove tiros que saíram da tela
+            # Remove tiros que saíram da tela usando método controlado
             if tiro.y < -tiro.altura:
-                self.jogador.tiros.remove(tiro)
+                self.jogador.remover_tiro(tiro)
 
     def mover_esquerda(self, largura_tela):
         """
         Regra de negócio: Mover jogador para a esquerda.
-        Inclui validação de limites da tela.
+        Agora usa properties que já incluem validação de limites.
         """
-        if self.jogador.x > 0:
-            self.jogador.x -= self.velocidade
-            self.jogador.rect.x = self.jogador.x
+        self.jogador.x -= self.velocidade
 
     def mover_direita(self, largura_tela):
         """
         Regra de negócio: Mover jogador para a direita.
-        Inclui validação de limites da tela.
+        Agora usa properties que já incluem validação de limites.
         """
-        if self.jogador.x < largura_tela - self.jogador.largura:
-            self.jogador.x += self.velocidade
-            self.jogador.rect.x = self.jogador.x
+        self.jogador.x += self.velocidade
 
     def mover_cima(self):
         """
         Regra de negócio: Mover jogador para cima.
-        Inclui validação de limites da tela.
+        Agora usa properties que já incluem validação de limites.
         """
-        if self.jogador.y > 0:
-            self.jogador.y -= self.velocidade
-            self.jogador.rect.y = self.jogador.y
+        self.jogador.y -= self.velocidade
 
     def mover_baixo(self, altura_tela):
         """
         Regra de negócio: Mover jogador para baixo.
-        Inclui validação de limites da tela.
+        Agora usa properties que já incluem validação de limites.
         """
-        if self.jogador.y < altura_tela - self.jogador.altura:
-            self.jogador.y += self.velocidade
-            self.jogador.rect.y = self.jogador.y
+        self.jogador.y += self.velocidade
