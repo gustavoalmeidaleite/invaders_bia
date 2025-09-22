@@ -5,7 +5,7 @@ class EntidadeJogo:
     """
     Classe base para todas as entidades do jogo (Superclasse).
     Implementa os atributos e métodos comuns a todas as entidades.
-    Demonstra o conceito de HERANÇA conforme as aulas do Dr. Edson Nascimento.
+    Demonstra o conceito de HERANÇA
     
     Esta é a SUPERCLASSE que contém:
     - Atributos comuns: posição (x, y), dimensões (largura, altura), rect, sprite
