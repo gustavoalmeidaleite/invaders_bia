@@ -119,10 +119,10 @@ def definir_vidas(self, vidas):
 
 ```
 Dados/                          → APENAS ESTRUTURAS DE DADOS
-├── jogador.py                  → ✅ Atributos + desenhar() (aceitável)
-├── inimigo.py                  → ✅ Atributos + desenhar() (aceitável)
-├── projetil.py                 → ✅ Atributos + atualizar_posicao()
-└── pontuacao.py                → ✅ Atributos + definir_dados()
+├── jogador.py                  → ✅ APENAS atributos e dados
+├── inimigo.py                  → ✅ APENAS atributos e dados
+├── projetil.py                 → ✅ APENAS atributos + atualizar_posicao()
+└── pontuacao.py                → ✅ APENAS atributos + definir_dados()
 
 Business/                       → APENAS REGRAS DE NEGÓCIO
 ├── jogador_business.py         → ✅ Lógicas do jogador
@@ -130,7 +130,7 @@ Business/                       → APENAS REGRAS DE NEGÓCIO
 ├── projetil_business.py        → ✅ Lógicas + movimento dos projéteis
 └── pontuacao_business.py       → ✅ Lógicas de pontuação (NOVO)
 
-jogo.py                         → ✅ Orquestração usando Business
+jogo.py                         → ✅ Orquestração + Renderização + Business
 ```
 
 ### 🎯 **Princípios de POO Aplicados Corretamente**
@@ -149,6 +149,93 @@ jogo.py                         → ✅ Orquestração usando Business
 - **Clareza**: Responsabilidades bem definidas e documentadas
 - **Extensibilidade**: Fácil adição de novas regras de negócio
 
-## ✅ **Conclusão**
+## 🎨 **Correção Adicional: Renderização Movida para Controlador**
 
-Todas as violações dos princípios de POO identificadas no relatório foram **100% corrigidas**. O projeto agora segue corretamente a teoria de Programação Orientada a Objetos conforme estabelecida no contexto acadêmico do Dr. Edson Nascimento.
+### 7. **Métodos desenhar() Removidos das Classes de Dados** - ✅ CORRIGIDO
+
+**Problema Adicional Identificado**: Métodos `desenhar()` nas classes `Jogador`, `Inimigo` e `Projetil` violavam o princípio de separação de responsabilidades.
+
+**Correção Realizada**:
+- ✅ **Removido**: Todos os métodos `desenhar()` das classes de dados
+- ✅ **Movido para jogo.py**: Métodos `desenhar_jogador()`, `desenhar_inimigo()`, `desenhar_projetil()`
+- ✅ **Limpeza**: Imports desnecessários removidos (COR_JOGADOR, COR_INIMIGO)
+
+**Justificativa**: A renderização é responsabilidade da camada de controle/apresentação, não das entidades de dados.
+
+**Antes**:
+```python
+# Em Dados/jogador.py
+def desenhar(self, tela):
+    if self.sprite:
+        sprite_rect = self.sprite.get_rect(center=self.rect.center)
+        tela.blit(self.sprite, sprite_rect)
+    else:
+        pygame.draw.rect(tela, COR_JOGADOR, self.rect)
+```
+
+**Depois**:
+```python
+# Em jogo.py (controlador)
+def desenhar_jogador(self):
+    """Método do controlador para renderizar o jogador."""
+    if self.jogador.sprite:
+        sprite_rect = self.jogador.sprite.get_rect(center=self.jogador.rect.center)
+        self.tela.blit(self.jogador.sprite, sprite_rect)
+    else:
+        pygame.draw.rect(self.tela, COR_JOGADOR, self.jogador.rect)
+```
+
+## ✅ **Conclusão Final**
+
+Todas as violações dos princípios de POO identificadas no relatório foram **100% corrigidas**, incluindo a separação correta entre dados e apresentação. O projeto agora segue **rigorosamente** a teoria de Programação Orientada a Objetos conforme estabelecida no contexto acadêmico do Dr. Edson Nascimento.
+
+## 🚀 **Correção Final: Movimento Movido para Business**
+
+### 8. **Métodos de Movimento Removidos do Controlador** - ✅ CORRIGIDO
+
+**Problema Final Identificado**: Métodos de movimento em `jogo.py` violavam o princípio de que o controlador deve apenas orquestrar, não conter regras de negócio.
+
+**Correção Realizada**:
+
+#### **Business/jogador_business.py** - ✅ EXPANDIDO
+- ✅ **Adicionado**: `mover_esquerda(largura_tela)` - Movimento com validação de limites
+- ✅ **Adicionado**: `mover_direita(largura_tela)` - Movimento com validação de limites
+- ✅ **Adicionado**: `mover_cima()` - Movimento com validação de limites
+- ✅ **Adicionado**: `mover_baixo(altura_tela)` - Movimento com validação de limites
+
+#### **Business/inimigo_business.py** - ✅ EXPANDIDO
+- ✅ **Adicionado**: `mover_inimigos(largura_tela)` - Movimento em formação com mudança de direção
+
+#### **jogo.py** - ✅ REFATORADO
+- ✅ **Convertido**: Todos os métodos `mover_*` agora apenas delegam para Business
+- ✅ **Removido**: Toda lógica de movimento do controlador
+- ✅ **Mantido**: Apenas coordenação e tratamento de exceções
+
+**Antes (Controlador com Regras)**:
+```python
+# Em jogo.py - INCORRETO
+def mover_jogador_esquerda(self):
+    if self.jogador.x > 0:  # Regra de negócio no controlador
+        self.jogador.x -= self.velocidade_jogador
+        self.jogador.rect.x = self.jogador.x
+```
+
+**Depois (Controlador Delegando)**:
+```python
+# Em jogo.py - CORRETO
+def mover_jogador_esquerda(self):
+    """Controlador: Delega movimento para JogadorBusiness."""
+    self.jogador_business.mover_esquerda(LARGURA_TELA)
+
+# Em Business/jogador_business.py - CORRETO
+def mover_esquerda(self, largura_tela):
+    """Regra de negócio: Mover jogador para a esquerda."""
+    if self.jogador.x > 0:  # Regra de negócio na camada correta
+        self.jogador.x -= self.velocidade
+        self.jogador.rect.x = self.jogador.x
+```
+
+### 🏆 **Arquitetura Final Perfeita**:
+- **Dados**: Apenas estruturas e atributos
+- **Business**: Regras de negócio, lógicas E movimentos
+- **Controlador**: APENAS orquestração, renderização e delegação

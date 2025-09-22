@@ -9,6 +9,10 @@ class InimigoBusiness:
         self.velocidade_base = velocidade_base
 
     def atirar_aleatorio(self):
+        """
+        Regra de negócio: Inimigo aleatório atira.
+        Seleciona um inimigo aleatório para disparar projétil.
+        """
         if self.inimigos:
             atirador = random.choice(self.inimigos)
             tiro_x = atirador.x + atirador.largura // 2 - 3
@@ -16,3 +20,26 @@ class InimigoBusiness:
             novo_tiro = Projetil(tiro_x, tiro_y, eh_inimigo=True)  # Direção para baixo
             return novo_tiro
         return None
+
+    def mover_inimigos(self, largura_tela):
+        """
+        Regra de negócio: Movimento dos inimigos em formação.
+        Move lateralmente e desce quando atinge as bordas.
+        """
+        mover_baixo = False
+
+        # Primeiro, move todos os inimigos lateralmente
+        for inimigo in self.inimigos:
+            inimigo.x += self.velocidade_base * inimigo.direcao
+            inimigo.rect.x = inimigo.x
+
+            # Verifica se algum inimigo atingiu a borda
+            if inimigo.x <= 0 or inimigo.x >= largura_tela - inimigo.largura:
+                mover_baixo = True
+
+        # Se algum inimigo atingiu a borda, todos mudam direção e descem
+        if mover_baixo:
+            for inimigo in self.inimigos:
+                inimigo.direcao *= -1  # Inverte direção
+                inimigo.y += 20        # Desce uma linha
+                inimigo.rect.y = inimigo.y

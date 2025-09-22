@@ -37,13 +37,3 @@ class Projetil:
         self.rect.x = nova_x
         self.rect.y = nova_y
 
-    def desenhar(self, tela):
-        """
-        Método para desenhar o projétil na tela.
-        Método de conveniência aceitável em jogos simples.
-        """
-        if self.sprite:
-            sprite_rect = self.sprite.get_rect(center=self.rect.center)
-            tela.blit(self.sprite, sprite_rect)
-        else:
-            pygame.draw.rect(tela, self.cor_fallback, self.rect)

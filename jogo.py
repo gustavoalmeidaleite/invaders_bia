@@ -271,72 +271,52 @@ class Jogo:
 
     def mover_jogador_esquerda(self):
         """
-        Move o jogador para a esquerda com validações de movimento.
+        Controlador: Delega movimento para JogadorBusiness.
         """
         try:
-            if self.jogador.x > 0:
-                self.jogador.x -= self.velocidade_jogador
-                self.jogador.rect.x = self.jogador.x
+            self.jogador_business.mover_esquerda(LARGURA_TELA)
         except Exception as e:
             print(f"Erro ao mover jogador para esquerda: {e}")
 
     def mover_jogador_direita(self):
         """
-        Move o jogador para a direita com validações de movimento.
+        Controlador: Delega movimento para JogadorBusiness.
         """
         try:
-            if self.jogador.x < LARGURA_TELA - self.jogador.largura:
-                self.jogador.x += self.velocidade_jogador
-                self.jogador.rect.x = self.jogador.x
+            self.jogador_business.mover_direita(LARGURA_TELA)
         except Exception as e:
             print(f"Erro ao mover jogador para direita: {e}")
 
     def mover_jogador_cima(self):
         """
-        Move o jogador para cima com validações de movimento.
+        Controlador: Delega movimento para JogadorBusiness.
         """
         try:
-            if self.jogador.y > 0:
-                self.jogador.y -= self.velocidade_jogador
-                self.jogador.rect.y = self.jogador.y
+            self.jogador_business.mover_cima()
         except Exception as e:
             print(f"Erro ao mover jogador para cima: {e}")
 
     def mover_jogador_baixo(self):
         """
-        Move o jogador para baixo com validações de movimento.
+        Controlador: Delega movimento para JogadorBusiness.
         """
         try:
-            if self.jogador.y < ALTURA_TELA - self.jogador.altura:
-                self.jogador.y += self.velocidade_jogador
-                self.jogador.rect.y = self.jogador.y
+            self.jogador_business.mover_baixo(ALTURA_TELA)
         except Exception as e:
             print(f"Erro ao mover jogador para baixo: {e}")
 
     def mover_inimigos(self):
         """
-        Move todos os inimigos lateralmente e para baixo quando atingem as bordas.
-        Inclui validações de movimento e atualizações de estado.
+        Controlador: Delega movimento para InimigoBusiness.
         """
         try:
-            mover_baixo = False
-            for inimigo in self.inimigos:
-                inimigo.x += self.velocidade_inimigo * inimigo.direcao
-                inimigo.rect.x = inimigo.x
-                if inimigo.x <= 0 or inimigo.x >= LARGURA_TELA - inimigo.largura:
-                    mover_baixo = True
-            if mover_baixo:
-                for inimigo in self.inimigos:
-                    inimigo.direcao *= -1
-                    inimigo.y += 20
-                    inimigo.rect.y = inimigo.y
+            self.inimigo_business.mover_inimigos(LARGURA_TELA)
         except Exception as e:
             print(f"Erro ao mover inimigos: {e}")
 
     def mover_projeteis(self):
         """
-        Move todos os projéteis (jogador e inimigos) e remove os que saíram da tela.
-        Agora utiliza ProjetilBusiness para aplicar regras de movimento.
+        Controlador: Delega movimento para ProjetilBusiness.
         """
         try:
             # Utiliza a regra de negócio para mover todos os projéteis
@@ -426,6 +406,7 @@ class Jogo:
     def desenhar_jogo(self):
         """
         Desenha os elementos do jogo durante o gameplay.
+        Responsabilidade do controlador: gerenciar toda a renderização.
         """
         # Desenha fundo
         if self.background:
@@ -433,12 +414,16 @@ class Jogo:
         else:
             self.tela.fill(COR_FUNDO)
 
-        self.jogador.desenhar(self.tela)
+        # Desenha jogador usando método local
+        self.desenhar_jogador()
+
+        # Desenha inimigos usando método local
         for inimigo in self.inimigos:
-            inimigo.desenhar(self.tela)
-        # Desenha projéteis
+            self.desenhar_inimigo(inimigo)
+
+        # Desenha projéteis usando método local
         for projetil in self.projeteis_jogador + self.projeteis_inimigo:
-            projetil.desenhar(self.tela)
+            self.desenhar_projetil(projetil)
 
         # Desenha efeitos de explosão
         for efeito in self.efeitos_explosao:
@@ -447,6 +432,39 @@ class Jogo:
         # Desenha HUD
         self.desenhar_hud()
         pygame.display.flip()
+
+    def desenhar_jogador(self):
+        """
+        Método do controlador para renderizar o jogador.
+        Separação correta: renderização no controlador, dados na entidade.
+        """
+        if self.jogador.sprite:
+            sprite_rect = self.jogador.sprite.get_rect(center=self.jogador.rect.center)
+            self.tela.blit(self.jogador.sprite, sprite_rect)
+        else:
+            pygame.draw.rect(self.tela, COR_JOGADOR, self.jogador.rect)
+
+    def desenhar_inimigo(self, inimigo):
+        """
+        Método do controlador para renderizar um inimigo.
+        Separação correta: renderização no controlador, dados na entidade.
+        """
+        if inimigo.sprite:
+            sprite_rect = inimigo.sprite.get_rect(center=inimigo.rect.center)
+            self.tela.blit(inimigo.sprite, sprite_rect)
+        else:
+            pygame.draw.rect(self.tela, COR_INIMIGO, inimigo.rect)
+
+    def desenhar_projetil(self, projetil):
+        """
+        Método do controlador para renderizar um projétil.
+        Separação correta: renderização no controlador, dados na entidade.
+        """
+        if projetil.sprite:
+            sprite_rect = projetil.sprite.get_rect(center=projetil.rect.center)
+            self.tela.blit(projetil.sprite, sprite_rect)
+        else:
+            pygame.draw.rect(self.tela, projetil.cor_fallback, projetil.rect)
 
     def desenhar_hud(self):
         """

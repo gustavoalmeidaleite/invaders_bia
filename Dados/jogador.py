@@ -1,5 +1,5 @@
 import pygame
-from utils import carregar_sprite, COR_JOGADOR, VELOCIDADE_JOGADOR
+from utils import carregar_sprite, VELOCIDADE_JOGADOR
 
 class Jogador:
     """
@@ -23,13 +23,3 @@ class Jogador:
         # Carrega sprite do jogador
         self.sprite = carregar_sprite("player_ship.png", largura, altura)
 
-    def desenhar(self, tela):
-        """
-        Método para desenhar o jogador na tela.
-        Demonstra abstração: esconde os detalhes de como o desenho é feito.
-        """
-        if self.sprite:
-            sprite_rect = self.sprite.get_rect(center=self.rect.center)
-            tela.blit(self.sprite, sprite_rect)
-        else:
-            pygame.draw.rect(tela, COR_JOGADOR, self.rect)

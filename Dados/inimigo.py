@@ -1,5 +1,5 @@
 import pygame
-from utils import carregar_sprite, COR_INIMIGO, VELOCIDADE_INIMIGO
+from utils import carregar_sprite
 
 class Inimigo:
     """Classe para representar um inimigo."""
@@ -21,9 +21,3 @@ class Inimigo:
         sprite_name = sprite_names.get(tipo, "invader_type1.png")
         self.sprite = carregar_sprite(sprite_name, largura, altura)
 
-    def desenhar(self, tela):
-        if self.sprite:
-            sprite_rect = self.sprite.get_rect(center=self.rect.center)
-            tela.blit(self.sprite, sprite_rect)
-        else:
-            pygame.draw.rect(tela, COR_INIMIGO, self.rect)
