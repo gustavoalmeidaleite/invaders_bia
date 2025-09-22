@@ -6,6 +6,7 @@ from Dados.inimigo import Inimigo
 from Business.inimigo_business import InimigoBusiness
 from Business.projetil_business import ProjetilBusiness
 from Dados.pontuacao import Pontuacao
+from Business.pontuacao_business import PontuacaoBusiness
 from utils import *
 
 class Menu:
@@ -165,6 +166,7 @@ class Jogo:
 
         # Variáveis do jogo
         self.pontuacao = Pontuacao()
+        self.pontuacao_business = PontuacaoBusiness(self.pontuacao)
         self.efeitos_explosao = []
 
         # Inicializa componentes do jogo
@@ -185,7 +187,7 @@ class Jogo:
         self.projeteis_jogador = []
         self.projeteis_inimigo = []
         self.projetil_business = ProjetilBusiness(self.projeteis_jogador, self.projeteis_inimigo)
-        self.pontuacao.resetar()
+        self.pontuacao_business.resetar_pontuacao()
 
         # Tempos para tiros
         self.tempo_ultimo_tiro = 0
@@ -334,20 +336,14 @@ class Jogo:
     def mover_projeteis(self):
         """
         Move todos os projéteis (jogador e inimigos) e remove os que saíram da tela.
-        Inclui validações de movimento e atualizações de estado.
+        Agora utiliza ProjetilBusiness para aplicar regras de movimento.
         """
         try:
-            # Mover projéteis do jogador
-            for projetil in self.projeteis_jogador[:]:
-                projetil.mover()
-                if projetil.y < -projetil.altura:
-                    self.projeteis_jogador.remove(projetil)
+            # Utiliza a regra de negócio para mover todos os projéteis
+            self.projetil_business.mover_todos_projeteis()
 
-            # Mover projéteis dos inimigos
-            for projetil in self.projeteis_inimigo[:]:
-                projetil.mover()
-                if projetil.y > ALTURA_TELA:
-                    self.projeteis_inimigo.remove(projetil)
+            # Utiliza a regra de negócio para remover projéteis fora da tela
+            self.projetil_business.remover_projeteis_fora_tela()
         except Exception as e:
             print(f"Erro ao mover projéteis: {e}")
 
@@ -368,15 +364,16 @@ class Jogo:
     def verificar_colisoes(self):
         """
         Método para verificar colisões entre tiros e inimigos/jogador.
+        Agora utiliza PontuacaoBusiness para aplicar regras de negócio.
         """
         # Colisão entre projéteis
-        self.projetil_business.verificar_colisao_projeteis(self.efeitos_explosao, self.pontuacao)
+        self.projetil_business.verificar_colisao_projeteis(self.efeitos_explosao, self.pontuacao_business)
 
         # Colisões com objetos
-        self.projetil_business.verificar_colisoes_com_objetos(self.jogador, self.inimigos, self.pontuacao)
+        self.projetil_business.verificar_colisoes_com_objetos(self.jogador, self.inimigos, self.pontuacao_business)
 
-        # Verifica se o jogador perdeu todas as vidas
-        if self.pontuacao.vidas_jogador <= 0:
+        # Verifica se o jogador perdeu todas as vidas usando regra de negócio
+        if self.pontuacao_business.verificar_game_over():
             self.game_over = GameOver(self.tela, self.pontuacao.pontos)
             self.estado = ESTADO_GAME_OVER
             return
