@@ -427,7 +427,7 @@ class Jogo:
 
         # Desenha efeitos de explosão
         for efeito in self.efeitos_explosao:
-            efeito.desenhar(self.tela)
+            self.desenhar_efeito_explosao(efeito)
 
         # Desenha HUD
         self.desenhar_hud()
@@ -465,6 +465,32 @@ class Jogo:
             self.tela.blit(projetil.sprite, sprite_rect)
         else:
             pygame.draw.rect(self.tela, projetil.cor_fallback, projetil.rect)
+
+    def desenhar_efeito_explosao(self, efeito):
+        """
+        Método do controlador para renderizar efeitos de explosão.
+        Separação correta: renderização no controlador, dados na entidade.
+        """
+        if not efeito.ativo:
+            return
+
+        if efeito.sprite:
+            # Redimensiona o sprite baseado no tamanho atual
+            sprite_escalado = pygame.transform.scale(efeito.sprite,
+                                                    (int(efeito.tamanho_atual), int(efeito.tamanho_atual)))
+            pos_x = efeito.x - efeito.tamanho_atual // 2
+            pos_y = efeito.y - efeito.tamanho_atual // 2
+            self.tela.blit(sprite_escalado, (pos_x, pos_y))
+        else:
+            # Efeito de fallback: círculos concêntricos
+            tempo_atual = pygame.time.get_ticks()
+            tempo_decorrido = tempo_atual - efeito.tempo_criacao
+            progresso = tempo_decorrido / efeito.tempo_vida
+
+            for i, cor in enumerate(efeito.cores_explosao):
+                raio = int(efeito.tamanho_atual * (1 - i * 0.2) * (1 - progresso))
+                if raio > 0:
+                    pygame.draw.circle(self.tela, cor, (int(efeito.x), int(efeito.y)), raio)
 
     def desenhar_hud(self):
         """

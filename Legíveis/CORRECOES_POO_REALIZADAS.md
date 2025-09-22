@@ -235,7 +235,60 @@ def mover_esquerda(self, largura_tela):
         self.jogador.rect.x = self.jogador.x
 ```
 
+## 🎨 **Correção Final: Renderização Centralizada no Controlador**
+
+### 9. **Método desenhar() Removido de utils.py** - ✅ CORRIGIDO
+
+**Problema Final Identificado**: Método `desenhar()` na classe `EfeitoExplosao` em `utils.py` violava o princípio de separação de responsabilidades.
+
+**Correção Realizada**:
+
+#### **utils.py** - ✅ LIMPO
+- ✅ **Removido**: Método `desenhar()` da classe `EfeitoExplosao`
+- ✅ **Mantido**: Apenas lógica de dados e utilitários
+
+#### **jogo.py** - ✅ EXPANDIDO
+- ✅ **Adicionado**: `desenhar_efeito_explosao(efeito)` - Renderização de explosões
+- ✅ **Atualizado**: Chamada no método `desenhar_jogo()` para usar o novo método local
+
+**Antes (Violação de Separação)**:
+```python
+# Em utils.py - INCORRETO
+class EfeitoExplosao:
+    def desenhar(self, tela):  # Renderização em classe utilitária
+        if self.sprite:
+            tela.blit(sprite_escalado, (pos_x, pos_y))
+        else:
+            pygame.draw.circle(tela, cor, (int(self.x), int(self.y)), raio)
+
+# Em jogo.py
+for efeito in self.efeitos_explosao:
+    efeito.desenhar(self.tela)  # Delegação incorreta
+```
+
+**Depois (Separação Correta)**:
+```python
+# Em utils.py - CORRETO
+class EfeitoExplosao:
+    # Apenas dados e lógica de atualização, SEM renderização
+
+# Em jogo.py - CORRETO
+def desenhar_efeito_explosao(self, efeito):
+    """Método do controlador para renderizar efeitos de explosão."""
+    if efeito.sprite:
+        tela.blit(sprite_escalado, (pos_x, pos_y))
+    else:
+        pygame.draw.circle(self.tela, cor, (int(efeito.x), int(efeito.y)), raio)
+
+for efeito in self.efeitos_explosao:
+    self.desenhar_efeito_explosao(efeito)  # Renderização no controlador
+```
+
 ### 🏆 **Arquitetura Final Perfeita**:
 - **Dados**: Apenas estruturas e atributos
 - **Business**: Regras de negócio, lógicas E movimentos
+- **Utils**: Apenas utilitários e constantes (SEM renderização)
 - **Controlador**: APENAS orquestração, renderização e delegação
+
+### ✅ **100% Adequado aos Princípios de POO**:
+**TODOS os métodos de renderização agora estão centralizados no controlador (`jogo.py`)**

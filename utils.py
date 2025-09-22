@@ -119,25 +119,3 @@ class EfeitoExplosao:
             progresso = tempo_decorrido / self.tempo_vida
             self.tamanho_atual = self.tamanho_inicial * (1 + progresso * 0.5)
 
-    def desenhar(self, tela):
-        """Desenha o efeito de explosão."""
-        if not self.ativo:
-            return
-
-        if self.sprite:
-            # Redimensiona o sprite baseado no tamanho atual
-            sprite_escalado = pygame.transform.scale(self.sprite,
-                                                    (int(self.tamanho_atual), int(self.tamanho_atual)))
-            pos_x = self.x - self.tamanho_atual // 2
-            pos_y = self.y - self.tamanho_atual // 2
-            tela.blit(sprite_escalado, (pos_x, pos_y))
-        else:
-            # Efeito de fallback: círculos concêntricos
-            tempo_atual = pygame.time.get_ticks()
-            tempo_decorrido = tempo_atual - self.tempo_criacao
-            progresso = tempo_decorrido / self.tempo_vida
-
-            for i, cor in enumerate(self.cores_explosao):
-                raio = int(self.tamanho_atual * (1 - i * 0.2) * (1 - progresso))
-                if raio > 0:
-                    pygame.draw.circle(tela, cor, (int(self.x), int(self.y)), raio)
