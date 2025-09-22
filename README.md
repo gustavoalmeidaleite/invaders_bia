@@ -1,52 +1,189 @@
-# Space Invaders - Protótipo
+# Space Invaders - Projeto de Programação Orientada a Objetos
 
-Este é um protótipo inicial do clássico jogo Space Invaders, desenvolvido em Python usando a biblioteca pygame. O projeto foi criado seguindo os princípios da Programação Orientada a Objetos (POO) conforme descrito no arquivo `Contexto.md`.
+Este é um jogo Space Invaders desenvolvido como projeto acadêmico no **Bacharelado de Inteligência Artificial da UFG**, na disciplina de **Programação Orientada a Objetos** do professor **Vinícius Sebba Patto**. O projeto demonstra a aplicação prática e rigorosa dos conceitos fundamentais e pilares da POO.
 
-## Características do Protótipo
+## Paradigma de Programação Orientada a Objetos
 
-### Funcionalidades Implementadas
-- ✅ **Menu Principal** com opções de iniciar e sair
-- ✅ **Tela de Game Over** com opções de reiniciar, menu ou sair
-- ✅ **Sistema de Estados** (Menu, Jogando, Game Over)
-- ✅ **Sistema de Pontuação** com diferentes valores por tipo de inimigo
-- ✅ **Sistema de Vidas** (3 vidas iniciais)
-- ✅ **Colisão entre Projéteis** com efeitos visuais de explosão
-- ✅ **HUD** com pontuação, vidas e controles
-- ✅ **Suporte a Sprites** com fallback para retângulos coloridos
-- ✅ **3 Tipos de Inimigos** com sprites diferentes
-- ✅ **Tiros do Jogador e Inimigos** com sprites específicos
-- ✅ **Background Customizável** com suporte a imagem de fundo
-- ✅ Tela de fundo (800x600 pixels)
-- ✅ Nave do jogador com sprite ou fallback verde
-- ✅ **Movimento completo da nave** (esquerda/direita/cima/baixo)
-- ✅ Sistema de tiro contínuo
-- ✅ Inimigos que se movem e atiram
-- ✅ Detecção de colisões
-- ✅ Controles responsivos
+Este projeto exemplifica a **Programação Orientada a Objetos (POO)** como paradigma de programação, contrastando com a programação imperativa e estruturada. A POO permite modelar o mundo real através de objetos que interagem entre si, proporcionando maior organização, reutilização e manutenibilidade do código.
 
-### Conceitos de POO Aplicados
+## Conceitos Fundamentais de POO Implementados
 
-O código demonstra os principais conceitos da Programação Orientada a Objetos:
+### Modelo de Objetos
+O jogo modela entidades do mundo real como objetos computacionais:
+- **Jogador**: Representa a nave espacial controlada pelo usuário
+- **Inimigo**: Representa as naves invasoras
+- **Projétil**: Representa os tiros disparados
+- **Pontuação**: Representa o sistema de pontos e vidas
 
-#### 1. **Classes e Objetos**
-- `Jogador`: Representa a nave espacial do jogador
-- `Jogo`: Classe principal que gerencia todo o jogo
+### Classes e Instâncias
+Cada entidade é definida por uma **classe** que serve como molde, e durante o jogo são criadas **instâncias** específicas:
 
-#### 2. **Encapsulamento**
-- Atributos privados controlados através de métodos
-- Métodos específicos para cada ação (mover_esquerda, mover_direita)
+```python
+# Classe define o molde
+class Jogador(EntidadeJogo):
+    def __init__(self, x, y):
+        super().__init__(x, y, 50, 30, "player_ship.png")
 
-#### 3. **Abstração**
-- Métodos como `desenhar()` escondem os detalhes de implementação
-- Interface simples para controlar o jogador
+# Instância específica criada durante o jogo
+jogador = Jogador(400, 550)  # Nave na posição específica
+```
 
-#### 4. **Composição**
-- A classe `Jogo` contém uma instância da classe `Jogador`
-- Demonstra o relacionamento "tem um" entre as classes
+### Atributos e Propriedades
+Todas as classes implementam **encapsulamento completo** com atributos privados e **properties** para acesso controlado:
 
-#### 5. **Delegação**
-- O jogo delega o controle do movimento para os métodos do jogador
-- Separação clara de responsabilidades
+```python
+class Jogador(EntidadeJogo):
+    def __init__(self, x, y):
+        self.__velocidade = 5  # Atributo privado
+        self.__tiros = []      # Lista privada
+
+    @property
+    def velocidade(self):      # Property para acesso controlado
+        return self.__velocidade
+
+    @velocidade.setter
+    def velocidade(self, nova_velocidade):
+        if 0 <= nova_velocidade <= 20:  # Validação
+            self.__velocidade = nova_velocidade
+```
+
+### Métodos
+Cada classe possui métodos que definem seus comportamentos específicos:
+- **Métodos de Dados**: Getters e setters para acesso controlado
+- **Métodos de Negócio**: Lógicas específicas de cada entidade
+- **Métodos de Controle**: Coordenação e renderização
+
+## Pilares da POO Implementados
+
+### Encapsulamento e Visibilidade
+**Implementação Completa**: Todos os atributos são privados (usando `__atributo`) com acesso controlado através de properties.
+
+**Acesso Público e Privado**:
+- **Público**: Properties e métodos de interface
+- **Privado**: Atributos internos protegidos com validação
+
+```python
+# Acesso público controlado
+jogador.x = 100  # Usa property com validação de limites
+
+# Acesso privado protegido
+# jogador.__x = 100  # Erro - atributo privado inacessível
+```
+
+### Herança
+**Implementação Completa**: Hierarquia de classes com superclasse e subclasses especializadas.
+
+**Superclasse**: `EntidadeJogo` - contém atributos e métodos comuns
+**Subclasses**: `Jogador`, `Inimigo`, `Projetil` - herdam e especializam comportamentos
+
+```python
+# Superclasse genérica
+class EntidadeJogo:
+    def __init__(self, x, y, largura, altura, sprite_nome):
+        self._x = x
+        self._y = y
+        # ... atributos comuns
+
+# Subclasse especializada
+class Jogador(EntidadeJogo):
+    def __init__(self, x, y):
+        super().__init__(x, y, 50, 30, "player_ship.png")  # Herança
+        self.__velocidade = 5  # Especialização
+```
+
+**Sobrescrita de Métodos**: Subclasses especializam comportamentos da superclasse:
+
+```python
+# Jogador sobrescreve setter para validação específica
+@x.setter
+def x(self, novo_x):
+    if 0 <= novo_x <= LARGURA_TELA - self.largura:
+        super(Jogador, self.__class__).x.fset(self, novo_x)
+    # Mantém jogador dentro da tela
+```
+
+## Elementos Avançados de POO
+
+### Construtores
+Todas as classes implementam construtores adequados usando `__init__()` com chamadas corretas a `super()` para herança.
+
+### Variáveis de Instância
+Cada objeto possui suas próprias variáveis de instância, permitindo múltiplas entidades independentes:
+
+```python
+# Cada inimigo tem suas próprias variáveis
+inimigo1 = Inimigo(100, 50, tipo=1)  # Posição e tipo específicos
+inimigo2 = Inimigo(200, 50, tipo=2)  # Diferentes do primeiro
+```
+
+### Comunicação Entre Objetos
+O projeto demonstra comunicação estruturada entre objetos através de métodos e delegação:
+
+```python
+# Jogo coordena comunicação entre objetos
+def verificar_colisoes(self):
+    for tiro in self.jogador.obter_tiros():
+        for inimigo in self.inimigos:
+            if tiro.rect.colliderect(inimigo.rect):
+                # Objetos interagem através de métodos
+                self.jogador.remover_tiro(tiro)
+                self.inimigos.remove(inimigo)
+```
+
+## Relacionamentos Entre Classes
+
+### Composição
+A classe `Jogo` **contém** instâncias de outras classes, demonstrando o relacionamento "tem um":
+
+```python
+class Jogo:
+    def __init__(self):
+        self.jogador = Jogador(400, 550)      # Jogo TEM UM jogador
+        self.inimigos = self.criar_inimigos() # Jogo TEM inimigos
+        self.pontuacao = Pontuacao()          # Jogo TEM pontuação
+```
+
+### Delegação
+O controlador delega responsabilidades específicas para classes especializadas:
+
+```python
+# Jogo delega movimento para JogadorBusiness
+def mover_jogador_esquerda(self):
+    self.jogador_business.mover_esquerda(LARGURA_TELA)
+
+# Jogo delega lógica de pontuação para PontuacaoBusiness
+def adicionar_pontos(self, pontos):
+    self.pontuacao_business.adicionar_pontos(pontos)
+```
+
+## Arquitetura do Projeto
+
+### Separação de Responsabilidades
+```
+Dados/                    → Estruturas de dados puras
+├── entidade_jogo.py     → Superclasse com atributos comuns
+├── jogador.py           → Dados do jogador
+├── inimigo.py           → Dados dos inimigos
+├── projetil.py          → Dados dos projéteis
+└── pontuacao.py         → Dados de pontuação
+
+Business/                 → Regras de negócio
+├── jogador_business.py  → Lógicas do jogador
+├── inimigo_business.py  → Lógicas dos inimigos
+├── projetil_business.py → Lógicas dos projéteis
+└── pontuacao_business.py → Lógicas de pontuação
+
+jogo.py                   → Controlador principal
+main.py                   → Ponto de entrada
+utils.py                  → Utilitários e constantes
+```
+
+### Benefícios da Arquitetura POO
+- **Manutenibilidade**: Mudanças localizadas em classes específicas
+- **Reutilização**: Código comum na superclasse, especialização nas subclasses
+- **Extensibilidade**: Fácil adição de novos tipos de entidades
+- **Testabilidade**: Classes isoladas facilitam testes unitários
+- **Organização**: Responsabilidades claramente definidas
 
 ## Como Executar
 
@@ -54,83 +191,38 @@ O código demonstra os principais conceitos da Programação Orientada a Objetos
 - Python 3.7 ou superior
 - pygame
 
-### Instalação
+### Instalação e Execução
 ```bash
-# Instalar pygame
+# Instalar dependências
 pip install pygame
 
 # Executar o jogo
-python space_invaders_prototype.py
+python main.py
 ```
 
 ### Controles
+- **Movimento**: Setas direcionais ou WASD
+- **Atirar**: Z ou Espaço
+- **Menu**: Enter para selecionar, ESC para voltar
 
-#### Menu e Game Over:
-- **Seta Cima/Baixo** ou **W/S**: Navegar nas opções
-- **ENTER** ou **ESPAÇO**: Selecionar opção
-- **ESC**: Sair do jogo (menu) ou voltar ao menu (game over)
+## Funcionalidades Implementadas
 
-#### Durante o Jogo:
-- **Seta Esquerda** ou **A**: Move a nave para a esquerda
-- **Seta Direita** ou **D**: Move a nave para a direita
-- **Seta Cima** ou **W**: Move a nave para cima
-- **Seta Baixo** ou **S**: Move a nave para baixo
-- **Z**: Atirar (pode segurar para tiro contínuo)
-- **ESC**: Voltar ao menu principal
+- ✅ **Sistema de Menu**: Navegação completa com teclado
+- ✅ **Movimento 4 Direções**: Controle total da nave
+- ✅ **Sistema de Tiro**: Projéteis do jogador e inimigos
+- ✅ **Colisões Avançadas**: Incluindo projétil vs projétil
+- ✅ **Sistema de Pontuação**: Pontos e vidas com persistência
+- ✅ **Efeitos Visuais**: Explosões animadas
+- ✅ **Hierarquia de Inimigos**: 3 tipos com pontuações diferentes
 
-## Estrutura do Código
+## Demonstração dos Conceitos POO
 
-```
-space_invaders_prototype.py
-├── Classe Jogador
-│   ├── __init__()          # Construtor
-│   ├── mover_esquerda()    # Movimento para esquerda
-│   ├── mover_direita()     # Movimento para direita
-│   └── desenhar()          # Renderização na tela
-│
-└── Classe Jogo
-    ├── __init__()          # Inicialização do jogo
-    ├── processar_eventos() # Gerenciamento de input
-    ├── atualizar()         # Lógica do jogo
-    ├── desenhar()          # Renderização geral
-    └── executar()          # Loop principal
-```
+Este projeto serve como exemplo prático de como a **Programação Orientada a Objetos** permite:
 
-## Arquivos do Projeto
+1. **Modelar o mundo real** através de classes e objetos
+2. **Proteger dados** através de encapsulamento
+3. **Reutilizar código** através de herança
+4. **Organizar responsabilidades** através de separação de camadas
+5. **Facilitar manutenção** através de arquitetura bem estruturada
 
-- `space_invaders_prototype.py` - Código principal do jogo
-- `sprites/` - Diretório para imagens dos sprites
-- `SPRITE_REQUIREMENTS.md` - Lista detalhada de sprites necessários
-- `MENU_E_GAME_OVER.md` - Documentação das funcionalidades de menu e game over
-- `MOVIMENTO_COMPLETO.md` - Documentação do sistema de movimento em 4 direções
-- `COLISAO_PROJETEIS.md` - Documentação do sistema de colisão entre projéteis
-- `requirements.txt` - Dependências do projeto
-
-## Sistema de Pontuação
-
-- **Inimigo Tipo 1** (linha superior): 30 pontos
-- **Inimigo Tipo 2** (linha média): 20 pontos
-- **Inimigo Tipo 3** (linha inferior): 10 pontos
-- **Interceptação de Projétil**: 5 pontos bônus
-
-## Próximos Passos
-
-Funcionalidades que podem ser adicionadas:
-- [ ] Efeitos sonoros e música
-- [ ] Animações de explosão
-- [ ] Power-ups especiais
-- [ ] Sistema de high scores
-- [ ] Múltiplos níveis
-- [ ] Configurações de dificuldade
-- [ ] Tela de créditos
-
-## Conceitos de POO Demonstrados
-
-O código segue fielmente os princípios descritos no `Contexto.md`:
-
-- **Variáveis de Instância**: `self.x`, `self.y`, `self.velocidade`
-- **Métodos**: Funções que alteram o estado dos objetos
-- **Construtor**: `__init__()` para inicializar objetos
-- **Mensagens**: Comunicação entre objetos através de chamadas de métodos
-
-Este protótipo estabelece uma base sólida para o desenvolvimento completo do jogo Space Invaders, demonstrando como aplicar os conceitos fundamentais da POO em um projeto prático.
+O resultado é um código **limpo, organizando, extensível e academicamente correto**, demonstrando a aplicação prática dos conceitos fundamentais da Programação Orientada a Objetos.
