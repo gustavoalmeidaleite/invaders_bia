@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Invaders Web</title>
+    <style>
+        body {
+            background-color: #222;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        canvas {
+            background-color: black;
+            border: 2px solid #444;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+        }
+        #status {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #888;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+    <h1>Space Invaders</h1>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="status">Connecting...</div>
+
+    <script>
+        const socket = io();
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const statusDiv = document.getElementById('status');
+
+        // Game assets
+        const sprites = {
+            player: new Image(),
+            enemy1: new Image(),
+            enemy2: new Image(),
+            enemy3: new Image(),
+            bulletPlayer: new Image(),
+            bulletEnemy: new Image(),
+            explosion: new Image(),
+            background: new Image()
+        };
+
+        // Load sprites (assuming they are served from /static/)
+        sprites.player.src = '/static/player_ship.png';
+        sprites.enemy1.src = '/static/invader_type1.png';
+        sprites.enemy2.src = '/static/invader_type2.png';
+        sprites.enemy3.src = '/static/invader_type3.png';
+        sprites.bulletPlayer.src = '/static/bullet_player.png';
+        sprites.bulletEnemy.src = '/static/bullet_enemy.png';
+        sprites.explosion.src = '/static/explosion.png';
+        sprites.background.src = '/static/background.png';
+
+        // Input handling
+        const keys = {};
+
+        document.addEventListener('keydown', (e) => {
+            if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(e.key)) {
+                e.preventDefault();
+            }
+            
+            let action = null;
+            switch(e.key) {
+                case 'ArrowLeft': action = 'esquerda'; break;
+                case 'ArrowRight': action = 'direita'; break;
+                case 'ArrowUp': action = 'cima'; break;
+                case 'ArrowDown': action = 'baixo'; break;
+                case ' ': action = 'atirar'; break;
+                case 'r': 
+                case 'R': action = 'reiniciar'; break;
+            }
+
+            if (action) {
+                socket.emit('input_jogador', { acao: action });
+            }
+        });
+
+        // Socket events
+        socket.on('connect', () => {
+            statusDiv.textContent = 'Connected to server';
+            statusDiv.style.color = '#0f0';
+        });
+
+        socket.on('disconnect', () => {
+            statusDiv.textContent = 'Disconnected from server';
+            statusDiv.style.color = '#f00';
+        });
+
+        socket.on('estado_jogo', (estado) => {
+            renderGame(estado);
+        });
+
+        function renderGame(estado) {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw background (optional, if we want a static background)
+            // ctx.drawImage(sprites.background, 0, 0, canvas.width, canvas.height);
+
+            // Draw Player
+            if (estado.jogador) {
+                ctx.drawImage(sprites.player, estado.jogador.x, estado.jogador.y, estado.jogador.largura, estado.jogador.altura);
+            }
+
+            // Draw Enemies
+            if (estado.inimigos) {
+                estado.inimigos.forEach(inimigo => {
+                    let sprite = sprites.enemy1;
+                    if (inimigo.tipo === 2) sprite = sprites.enemy2;
+                    if (inimigo.tipo === 3) sprite = sprites.enemy3;
+                    
+                    ctx.drawImage(sprite, inimigo.x, inimigo.y, inimigo.largura, inimigo.altura);
+                });
+            }
+
+            // Draw Projectiles
+            if (estado.projeteis) {
+                estado.projeteis.forEach(projetil => {
+                    let sprite = projetil.tipo === 'jogador' ? sprites.bulletPlayer : sprites.bulletEnemy;
+                    ctx.drawImage(sprite, projetil.x, projetil.y, projetil.largura, projetil.altura);
+                });
+            }
+
+            // Draw Explosions
+            if (estado.explosões) {
+                estado.explosões.forEach(explosao => {
+                    // Simple scaling for explosion effect
+                    const size = explosao.tamanho;
+                    const offset = size / 2;
+                    ctx.drawImage(sprites.explosion, explosao.x - offset, explosao.y - offset, size, size);
+                });
+            }
+
+            // Draw HUD
+            ctx.fillStyle = 'white';
+            ctx.font = '20px Courier New';
+            ctx.textAlign = 'left';
+            ctx.fillText(`Score: ${estado.pontuacao}`, 10, 30);
+            ctx.fillText(`Lives: ${estado.vidas}`, 10, 60);
+
+            // Game Over Screen
+            if (estado.game_over) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = 'red';
+                ctx.font = '50px Courier New';
+                ctx.textAlign = 'center';
+                ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
+                
+                ctx.fillStyle = 'white';
+                ctx.font = '20px Courier New';
+                ctx.fillText('Press R to Restart', canvas.width / 2, canvas.height / 2 + 50);
+            }
+        }
+    </script>
+</body>
+</html>
