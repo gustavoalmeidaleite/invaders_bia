@@ -62,28 +62,97 @@
         sprites.explosion.src = '/static/explosion.png';
         sprites.background.src = '/static/background.png';
 
-        // Input handling
-        const keys = {};
+        // Input handling com estados para menu, jogo e game over
+        const pressedKeys = new Set();
+        let estadoAtual = 'menu';
+
+        const shouldPreventDefault = (key) => (
+            ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' ', 'a', 'd', 'w', 's', 'A', 'D', 'W', 'S', 'z', 'Z'].includes(key)
+        );
+
+        function emitirAcao(acao, estado = 'pressionar') {
+            if (!acao) return;
+            socket.emit('input_jogador', { acao, estado });
+        }
+
+        function resolverAcao(key) {
+            const isMenu = estadoAtual === 'menu';
+            const isGameOver = estadoAtual === 'game_over';
+            const isJogando = estadoAtual === 'jogando';
+
+            // Ações globais
+            if (key === 'p' || key === 'P') return { acao: 'pausar', tipo: 'single', prevent: true };
+            if (key === 'Escape') return { acao: 'menu', tipo: 'single', prevent: true };
+            if (key === 'r' || key === 'R') return { acao: 'reiniciar', tipo: 'single', prevent: true };
+
+            // Menus (principal ou game over)
+            if (isMenu || isGameOver) {
+                if (['ArrowUp', 'w', 'W'].includes(key)) return { acao: 'menu_cima', tipo: 'single', prevent: true };
+                if (['ArrowDown', 's', 'S'].includes(key)) return { acao: 'menu_baixo', tipo: 'single', prevent: true };
+                if (key === ' ' || key === 'Enter') return { acao: 'menu_selecionar', tipo: 'single', prevent: true };
+                return null;
+            }
+
+            // Jogo rodando / pausado: entradas contínuas
+            switch (key) {
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    return { acao: 'esquerda', tipo: 'cont', prevent: true };
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    return { acao: 'direita', tipo: 'cont', prevent: true };
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    return { acao: 'cima', tipo: 'cont', prevent: true };
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    return { acao: 'baixo', tipo: 'cont', prevent: true };
+                case ' ':
+                case 'z':
+                case 'Z':
+                    return { acao: 'atirar', tipo: 'cont', prevent: true };
+                default:
+                    return null;
+            }
+        }
 
         document.addEventListener('keydown', (e) => {
-            if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(e.key)) {
-                e.preventDefault();
-            }
-            
-            let action = null;
-            switch(e.key) {
-                case 'ArrowLeft': action = 'esquerda'; break;
-                case 'ArrowRight': action = 'direita'; break;
-                case 'ArrowUp': action = 'cima'; break;
-                case 'ArrowDown': action = 'baixo'; break;
-                case ' ': action = 'atirar'; break;
-                case 'r': 
-                case 'R': action = 'reiniciar'; break;
-            }
+            const info = resolverAcao(e.key);
+            if (!info) return;
+            if (info.prevent && shouldPreventDefault(e.key)) e.preventDefault();
 
-            if (action) {
-                socket.emit('input_jogador', { acao: action });
+            if (info.tipo === 'cont') {
+                if (!pressedKeys.has(e.key)) {
+                    pressedKeys.add(e.key);
+                    emitirAcao(info.acao, 'pressionar');
+                }
+            } else {
+                emitirAcao(info.acao, 'pressionar');
             }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            const info = resolverAcao(e.key);
+            if (!info || info.tipo !== 'cont') return;
+            if (info.prevent && shouldPreventDefault(e.key)) e.preventDefault();
+
+            pressedKeys.delete(e.key);
+            emitirAcao(info.acao, 'soltar');
+        });
+
+        // Solta todas as teclas se a janela perder o foco (evita movimento preso)
+        window.addEventListener('blur', () => {
+            pressedKeys.forEach((key) => {
+                const info = resolverAcao(key);
+                if (info && info.tipo === 'cont') {
+                    emitirAcao(info.acao, 'soltar');
+                }
+            });
+            pressedKeys.clear();
         });
 
         // Socket events
@@ -98,22 +167,56 @@
         });
 
         socket.on('estado_jogo', (estado) => {
+            if (estado && estado.estado) {
+                if (estado.estado !== estadoAtual) {
+                    pressedKeys.clear();
+                }
+                estadoAtual = estado.estado;
+            }
+
             renderGame(estado);
+            atualizarStatus(estado);
         });
 
-        function renderGame(estado) {
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        function atualizarStatus(estado) {
+            if (!estado) return;
+            const mapStatus = {
+                menu: 'Menu - selecione com ↑/↓ e Enter/Espaço',
+                jogando: estado.pausado ? 'Jogo pausado - P para retomar' : 'Em jogo',
+                game_over: 'Game over - use ↑/↓ e Enter/Espaço'
+            };
 
-            // Draw background (optional, if we want a static background)
+            let texto = mapStatus[estado.estado] || 'Em jogo';
+            let cor = '#0f0';
+
+            if (estado.estado === 'menu') cor = '#0ff';
+            if (estado.estado === 'game_over') cor = '#f00';
+            if (estado.pausado && estado.estado === 'jogando') cor = '#ff0';
+            if (estado.deseja_sair) texto = 'Opção sair selecionada - feche a aba para encerrar';
+
+            statusDiv.textContent = texto;
+            statusDiv.style.color = cor;
+        }
+
+        function renderGame(estado) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (!estado) return;
+
+            const estadoNome = estado.estado || 'jogando';
+
+            if (estadoNome === 'menu') {
+                renderMenu(estado.menu);
+                return;
+            }
+
+            // Plano de fundo (opcional)
             // ctx.drawImage(sprites.background, 0, 0, canvas.width, canvas.height);
 
-            // Draw Player
+            // Desenho do jogo ativo
             if (estado.jogador) {
                 ctx.drawImage(sprites.player, estado.jogador.x, estado.jogador.y, estado.jogador.largura, estado.jogador.altura);
             }
 
-            // Draw Enemies
             if (estado.inimigos) {
                 estado.inimigos.forEach(inimigo => {
                     let sprite = sprites.enemy1;
@@ -124,7 +227,6 @@
                 });
             }
 
-            // Draw Projectiles
             if (estado.projeteis) {
                 estado.projeteis.forEach(projetil => {
                     let sprite = projetil.tipo === 'jogador' ? sprites.bulletPlayer : sprites.bulletEnemy;
@@ -132,37 +234,89 @@
                 });
             }
 
-            // Draw Explosions
             if (estado.explosões) {
                 estado.explosões.forEach(explosao => {
-                    // Simple scaling for explosion effect
                     const size = explosao.tamanho;
                     const offset = size / 2;
                     ctx.drawImage(sprites.explosion, explosao.x - offset, explosao.y - offset, size, size);
                 });
             }
 
-            // Draw HUD
+            // HUD
             ctx.fillStyle = 'white';
             ctx.font = '20px Courier New';
             ctx.textAlign = 'left';
             ctx.fillText(`Score: ${estado.pontuacao}`, 10, 30);
             ctx.fillText(`Lives: ${estado.vidas}`, 10, 60);
 
-            // Game Over Screen
-            if (estado.game_over) {
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            if (estadoNome === 'game_over') {
+                renderGameOverMenu(estado.menu_game_over, estado.pontuacao);
+                return;
+            }
+
+            // Pause overlay
+            if (estado.pausado) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                ctx.fillStyle = 'red';
+
+                ctx.fillStyle = '#0ff';
                 ctx.font = '50px Courier New';
                 ctx.textAlign = 'center';
-                ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
-                
+                ctx.fillText('PAUSADO', canvas.width / 2, canvas.height / 2);
+
                 ctx.fillStyle = 'white';
                 ctx.font = '20px Courier New';
-                ctx.fillText('Press R to Restart', canvas.width / 2, canvas.height / 2 + 50);
+                ctx.fillText('Pressione P para retomar', canvas.width / 2, canvas.height / 2 + 50);
             }
+        }
+
+        function renderMenu(menuInfo = { opcoes: ['INICIAR', 'SAIR'], selecionada: 0 }) {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#0ff';
+            ctx.font = '48px Courier New';
+            ctx.textAlign = 'center';
+            ctx.fillText('SPACE INVADERS', canvas.width / 2, 180);
+
+            ctx.font = '32px Courier New';
+            menuInfo.opcoes.forEach((opcao, idx) => {
+                const selecionada = idx === menuInfo.selecionada;
+                ctx.fillStyle = selecionada ? '#ff0' : '#fff';
+                ctx.fillText(opcao, canvas.width / 2, 260 + idx * 60);
+            });
+
+            ctx.fillStyle = '#aaa';
+            ctx.font = '20px Courier New';
+            ctx.fillText('Use ↑/↓ ou W/S para navegar', canvas.width / 2, 420);
+            ctx.fillText('Enter ou Espaço para selecionar', canvas.width / 2, 450);
+            ctx.fillText('P para pausar durante o jogo', canvas.width / 2, 480);
+        }
+
+        function renderGameOverMenu(menuInfo = { opcoes: [], selecionada: 0 }, pontuacao = 0) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = 'red';
+            ctx.font = '50px Courier New';
+            ctx.textAlign = 'center';
+            ctx.fillText('GAME OVER', canvas.width / 2, 220);
+
+            ctx.fillStyle = '#fff';
+            ctx.font = '24px Courier New';
+            ctx.fillText(`Pontuação: ${pontuacao}`, canvas.width / 2, 260);
+
+            ctx.font = '28px Courier New';
+            menuInfo.opcoes.forEach((opcao, idx) => {
+                const selecionada = idx === menuInfo.selecionada;
+                ctx.fillStyle = selecionada ? '#ff0' : '#fff';
+                ctx.fillText(opcao, canvas.width / 2, 320 + idx * 50);
+            });
+
+            ctx.fillStyle = '#aaa';
+            ctx.font = '20px Courier New';
+            ctx.fillText('Use ↑/↓ ou W/S para navegar', canvas.width / 2, 500);
+            ctx.fillText('Enter ou Espaço para selecionar', canvas.width / 2, 530);
         }
     </script>
 </body>

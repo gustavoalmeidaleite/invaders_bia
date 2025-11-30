@@ -26,8 +26,10 @@ def handle_connect():
 
 @socketio.on('input_jogador')
 def handle_input(data):
-    if 'acao' in data:
-        jogo.processar_comando(data['acao'])
+    acao = data.get('acao')
+    estado = data.get('estado')
+    if acao:
+        jogo.processar_comando(acao, estado)
 
 def start_game_thread():
     """
