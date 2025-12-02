@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Space Invaders</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #000;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .container {
+            background-color: #111;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 350px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ccc;
+            font-size: 16px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: none;
+            background-color: #ccc;
+            color: #000;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .btn-login {
+            background: none;
+            border: none;
+            color: #ff0000;
+            font-size: 32px;
+            font-family: 'Courier New', Courier, monospace;
+            cursor: pointer;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .btn-login:hover {
+            color: #ff5555;
+        }
+        .link {
+            color: #aaa;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        .link a {
+            color: #aaa;
+            text-decoration: none;
+        }
+        .link a:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+        .error {
+            color: #ff5555;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        .success {
+            color: #55ff55;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        .titulo {
+            color: #0ff;
+            font-size: 36px;
+            font-style: italic;
+            margin-bottom: 5px;
+        }
+        .subtitulo {
+            color: #0ff;
+            font-size: 32px;
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="titulo">SPACE INVADERS:</h1>
+        <h2 class="subtitulo">BIA VERSION</h2>
+
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+        {% if success %}
+        <div class="success">{{ success }}</div>
+        {% endif %}
+
+        <form method="POST" action="/login">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label>Senha</label>
+                <input type="password" name="senha" required>
+            </div>
+            <button type="submit" class="btn-login">Login</button>
+        </form>
+        
+        <div class="link">
+            Não tem login? <a href="/cadastro">Faça seu cadastro</a>
+        </div>
+    </div>
+</body>
+</html>
+
