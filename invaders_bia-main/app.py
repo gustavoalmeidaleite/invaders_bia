@@ -16,14 +16,51 @@ Arquitetura do projeto:
 - mainFlask.py: Executável principal
 """
 
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, redirect, url_for, session
 from flask_socketio import SocketIO
+from functools import wraps
 import threading
+import json
+import os
+import hashlib
+import time
 from jogo_headless import JogoHeadless
 
 # Inicialização do Flask
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
+# Chave secreta única - muda a cada reinício para invalidar sessões antigas
+app.config['SECRET_KEY'] = f'space_invaders_bia_{time.time()}'
+app.config['SESSION_PERMANENT'] = False  # Sessão expira ao fechar navegador
+app.config['SESSION_COOKIE_SECURE'] = False
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+
+# Arquivo para armazenar usuários
+USUARIOS_FILE = os.path.join(os.path.dirname(__file__), 'usuarios.json')
+
+def carregar_usuarios():
+    """Carrega usuários do arquivo JSON."""
+    if os.path.exists(USUARIOS_FILE):
+        with open(USUARIOS_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return {}
+
+def salvar_usuarios(usuarios):
+    """Salva usuários no arquivo JSON."""
+    with open(USUARIOS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(usuarios, f, ensure_ascii=False, indent=2)
+
+def hash_senha(senha):
+    """Gera hash da senha."""
+    return hashlib.sha256(senha.encode()).hexdigest()
+
+def login_required(f):
+    """Decorator para exigir login."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'usuario_email' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 # Socket.IO para comunicação em tempo real
 # Usa threading para simplicidade (conforme requisitos)
@@ -45,9 +82,90 @@ jogo = JogoHeadless()
 @app.route('/')
 def index():
     """
-    Rota principal (home/landing page).
+    Rota principal - redireciona para login ou jogo.
+    """
+    if 'usuario_email' in session:
+        return redirect(url_for('jogo_route'))
+    return redirect(url_for('login'))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """
+    Rota de login.
+    GET: Exibe formulário de login.
+    POST: Processa autenticação.
+    """
+    if 'usuario_email' in session:
+        return redirect(url_for('jogo_route'))
+
+    error = None
+    success = request.args.get('success')
+
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip()
+        senha = request.form.get('senha', '')
+
+        usuarios = carregar_usuarios()
+
+        if email in usuarios and usuarios[email]['senha'] == hash_senha(senha):
+            session.permanent = False  # Sessão expira ao fechar navegador
+            session['usuario_email'] = email
+            session['usuario_nome'] = usuarios[email]['nome']
+            return redirect(url_for('jogo_route'))
+        else:
+            error = 'Email ou senha inválidos'
+
+    return render_template('login.html', error=error, success=success)
+
+@app.route('/cadastro', methods=['GET', 'POST'])
+def cadastro():
+    """
+    Rota de cadastro.
+    GET: Exibe formulário de cadastro.
+    POST: Processa novo cadastro.
+    """
+    if 'usuario_email' in session:
+        return redirect(url_for('jogo_route'))
+
+    error = None
+
+    if request.method == 'POST':
+        nome = request.form.get('nome', '').strip()
+        email = request.form.get('email', '').strip()
+        senha = request.form.get('senha', '')
+
+        if not nome or not email or not senha:
+            error = 'Todos os campos são obrigatórios'
+        elif len(senha) < 4:
+            error = 'Senha deve ter pelo menos 4 caracteres'
+        else:
+            usuarios = carregar_usuarios()
+
+            if email in usuarios:
+                error = 'Email já cadastrado'
+            else:
+                usuarios[email] = {
+                    'nome': nome,
+                    'senha': hash_senha(senha)
+                }
+                salvar_usuarios(usuarios)
+                return redirect(url_for('login', success='Cadastro realizado com sucesso!'))
+
+    return render_template('cadastro.html', error=error)
+
+@app.route('/logout')
+def logout():
+    """Rota para logout."""
+    session.pop('usuario_email', None)
+    session.pop('usuario_nome', None)
+    return redirect(url_for('login'))
+
+@app.route('/jogo')
+@login_required
+def jogo_route():
+    """
+    Rota do jogo (protegida por login).
     Retorna a interface HTML do jogo.
-    Conforme padrão ensinado: @app.route("/") para home.
     """
     return render_template('index.html')
 

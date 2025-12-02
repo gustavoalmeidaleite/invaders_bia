@@ -28,7 +28,7 @@ class JogoHeadless:
         self.game_over = False
         self.pausado = False
         self.estado = ESTADO_MENU
-        self.menu_opcoes = ["INICIAR", "SAIR"]
+        self.menu_opcoes = ["JOGAR COM IA", "JOGAR SOLO", "SAIR"]
         self.menu_selecionada = 0
         self.game_over_opcoes = ["JOGAR NOVAMENTE", "MENU PRINCIPAL", "SAIR"]
         self.game_over_selecionada = 0
@@ -350,7 +350,9 @@ class JogoHeadless:
             self.menu_selecionada = (self.menu_selecionada + 1) % len(self.menu_opcoes)
         elif comando == "menu_selecionar":
             opcao = self.menu_opcoes[self.menu_selecionada]
-            if opcao == "INICIAR":
+            if opcao == "JOGAR COM IA":
+                self.iniciar_partida()
+            elif opcao == "JOGAR SOLO":
                 self.iniciar_partida()
             elif opcao == "SAIR":
                 # No webservice não encerramos o servidor; sinalizamos intenção
