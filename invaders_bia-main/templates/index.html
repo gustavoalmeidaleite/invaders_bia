@@ -66,7 +66,7 @@
         const pressedKeys = new Set();
         let estadoAtual = 'menu';
         let telaConfigIA = false;  // Tela local de configuração da IA
-        let configIA = { layers: 2, neuronios: 10, campoSelecionado: 0 };  // 0=layers, 1=neuronios, 2=iniciar
+        let configIA = { layers: 2, neuronios: 16, campoSelecionado: 0 };  // 0=layers, 1=neuronios
         let menuSelecionada = 0;  // Guarda a opção selecionada no menu
 
         const shouldPreventDefault = (key) => (
@@ -97,25 +97,23 @@
             if (acao === 'config_ia_cima') {
                 configIA.campoSelecionado = Math.max(0, configIA.campoSelecionado - 1);
             } else if (acao === 'config_ia_baixo') {
-                configIA.campoSelecionado = Math.min(2, configIA.campoSelecionado + 1);
+                configIA.campoSelecionado = Math.min(1, configIA.campoSelecionado + 1);
             } else if (acao === 'config_ia_menos') {
                 if (configIA.campoSelecionado === 0) {
                     configIA.layers = Math.max(1, configIA.layers - 1);
                 } else if (configIA.campoSelecionado === 1) {
-                    configIA.neuronios = Math.max(1, configIA.neuronios - 1);
+                    configIA.neuronios = Math.max(8, configIA.neuronios - 1);
                 }
             } else if (acao === 'config_ia_mais') {
                 if (configIA.campoSelecionado === 0) {
-                    configIA.layers = Math.min(99, configIA.layers + 1);
+                    configIA.layers = Math.min(10, configIA.layers + 1);
                 } else if (configIA.campoSelecionado === 1) {
-                    configIA.neuronios = Math.min(99, configIA.neuronios + 1);
+                    configIA.neuronios = Math.min(256, configIA.neuronios + 1);
                 }
             } else if (acao === 'config_ia_selecionar') {
-                if (configIA.campoSelecionado === 2) {
-                    // INICIAR - sair da tela de config e iniciar o jogo
-                    telaConfigIA = false;
-                    socket.emit('input_jogador', { acao: 'menu_selecionar', estado: 'pressionar' });
-                }
+                // Enter inicia o jogo de qualquer campo
+                telaConfigIA = false;
+                socket.emit('input_jogador', { acao: 'menu_selecionar', estado: 'pressionar' });
             } else if (acao === 'config_ia_voltar') {
                 telaConfigIA = false;
             }
@@ -366,42 +364,66 @@
             ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.textAlign = 'left';
-            const startX = 150;
+            // Título "CONFIGURAR IA" em cyan
+            ctx.fillStyle = '#0ff';
+            ctx.font = 'italic bold 48px Courier New';
+            ctx.textAlign = 'center';
+            ctx.fillText('CONFIGURAR IA', canvas.width / 2, 80);
+
+            // Subtítulo
+            ctx.fillStyle = '#fff';
+            ctx.font = '20px Courier New';
+            ctx.fillText('Configure a arquitetura da rede neural', canvas.width / 2, 130);
+
+            const startX = 80;
+            const valueX = 380;
+            const descX = 480;
             const startY = 200;
-            const spacing = 80;
+            const spacing = 90;
 
             // Campo Layers
-            ctx.fillStyle = configIA.campoSelecionado === 0 ? '#fff' : '#aaa';
-            ctx.font = '32px Courier New';
+            ctx.textAlign = 'left';
+            ctx.fillStyle = configIA.campoSelecionado === 0 ? '#ff0' : '#fff';
+            ctx.font = 'bold 32px Courier New';
             ctx.fillText('Layers:', startX, startY);
-            ctx.fillStyle = '#ccc';
-            ctx.fillRect(startX + 180, startY - 30, 120, 40);
-            ctx.fillStyle = '#000';
-            ctx.font = '28px Courier New';
-            ctx.fillText(configIA.layers.toString(), startX + 220, startY);
+            ctx.fillStyle = '#0ff';
+            ctx.font = '32px Courier New';
+            ctx.fillText(configIA.layers.toString(), valueX, startY);
+            ctx.fillStyle = '#888';
+            ctx.font = '18px Courier New';
+            ctx.fillText('(1-10 camadas ocultas)', descX, startY);
 
             // Campo Neurônios
-            ctx.fillStyle = configIA.campoSelecionado === 1 ? '#fff' : '#aaa';
-            ctx.font = '32px Courier New';
+            ctx.fillStyle = configIA.campoSelecionado === 1 ? '#ff0' : '#fff';
+            ctx.font = 'bold 32px Courier New';
             ctx.fillText('Neurônios:', startX, startY + spacing);
-            ctx.fillStyle = '#ccc';
-            ctx.fillRect(startX + 180, startY + spacing - 30, 120, 40);
-            ctx.fillStyle = '#000';
-            ctx.font = '28px Courier New';
-            ctx.fillText(configIA.neuronios.toString(), startX + 220, startY + spacing);
-
-            // Botão INICIAR
-            ctx.textAlign = 'center';
-            ctx.fillStyle = configIA.campoSelecionado === 2 ? '#ff0' : '#aa0';
-            ctx.font = 'bold 36px Courier New';
-            ctx.fillText('INICIAR', canvas.width / 2, startY + spacing * 2 + 40);
-
-            // Instruções
-            ctx.fillStyle = '#666';
+            ctx.fillStyle = '#0ff';
+            ctx.font = '32px Courier New';
+            ctx.fillText(configIA.neuronios.toString(), valueX, startY + spacing);
+            ctx.fillStyle = '#888';
             ctx.font = '18px Courier New';
-            ctx.fillText('Use ↑/↓ para navegar, ←/→ para alterar valores', canvas.width / 2, canvas.height - 60);
-            ctx.fillText('Enter para iniciar, ESC para voltar', canvas.width / 2, canvas.height - 35);
+            ctx.fillText('(8-256 neurônios por camada)', descX, startY + spacing);
+
+            // Arquitetura da rede neural
+            ctx.fillStyle = '#0ff';
+            ctx.font = '20px Courier New';
+            const arquitetura = gerarArquitetura();
+            ctx.fillText('Arquitetura: ' + arquitetura, startX, canvas.height - 40);
+
+            // Botão INICIAR (invisível mas funcional)
+            // O usuário navega até ele com setas
+        }
+
+        function gerarArquitetura() {
+            // Entrada: 8 (exemplo), camadas ocultas com neurônios, saída: 5 (exemplo)
+            const entrada = 8;
+            const saida = 5;
+            let partes = [entrada.toString()];
+            for (let i = 0; i < configIA.layers; i++) {
+                partes.push(configIA.neuronios.toString());
+            }
+            partes.push(saida.toString());
+            return partes.join(' → ');
         }
 
         function renderGameOverMenu(menuInfo = { opcoes: [], selecionada: 0 }, pontuacao = 0) {
