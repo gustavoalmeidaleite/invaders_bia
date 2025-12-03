@@ -1,5 +1,5 @@
 import pygame
-from utils import carregar_sprite, LARGURA_TELA, ALTURA_TELA
+from utils import LARGURA_TELA, ALTURA_TELA
 
 class Inimigo:
     """
@@ -28,15 +28,6 @@ class Inimigo:
         self.__rect = pygame.Rect(x, y, largura, altura)
         self.__direcao = 1  # 1 = direita, -1 = esquerda
         self.__tipo = tipo
-
-        # Carrega sprite baseado no tipo
-        sprite_names = {
-            1: "invader_type1.png",
-            2: "invader_type2.png",
-            3: "invader_type3.png"
-        }
-        sprite_name = sprite_names.get(tipo, "invader_type1.png")
-        self.__sprite = carregar_sprite(sprite_name, largura, altura)
 
     # Properties para X (com validação de limites)
     @property
@@ -111,9 +102,4 @@ class Inimigo:
         """Getter para tipo do inimigo (somente leitura)."""
         return self.__tipo
 
-    # Properties para sprite (somente leitura)
-    @property
-    def sprite(self):
-        """Getter para sprite do inimigo (somente leitura)."""
-        return self.__sprite
 

@@ -23,66 +23,6 @@ ESTADO_MENU = 0
 ESTADO_JOGANDO = 1
 ESTADO_GAME_OVER = 2
 
-# Diretório de sprites
-SPRITES_DIR = "sprites"
-
-# Dicionário para armazenar sprites carregados
-sprites_cache = {}
-
-def carregar_sprite(nome_arquivo, largura=None, altura=None):
-    """
-    Carrega um sprite do diretório sprites com tratamento de erro.
-    Retorna None se o arquivo não existir ou houver erro no carregamento.
-
-    Args:
-        nome_arquivo (str): Nome do arquivo de sprite
-        largura (int, optional): Largura para redimensionar
-        altura (int, optional): Altura para redimensionar
-
-    Returns:
-        pygame.Surface ou None: Sprite carregado ou None se houver erro
-    """
-    # Verifica se já está no cache
-    cache_key = f"{nome_arquivo}_{largura}_{altura}"
-    if cache_key in sprites_cache:
-        return sprites_cache[cache_key]
-
-    caminho_sprite = os.path.join(SPRITES_DIR, nome_arquivo)
-
-    try:
-        if os.path.exists(caminho_sprite):
-            sprite = pygame.image.load(caminho_sprite).convert_alpha()
-
-            # Redimensiona se especificado
-            if largura and altura:
-                sprite = pygame.transform.scale(sprite, (largura, altura))
-
-            # Armazena no cache
-            sprites_cache[cache_key] = sprite
-            return sprite
-        else:
-            print(f"Aviso: Sprite '{nome_arquivo}' não encontrado em '{SPRITES_DIR}'. Usando fallback.")
-            return None
-    except pygame.error as e:
-        print(f"Erro ao carregar sprite '{nome_arquivo}': {e}. Usando fallback.")
-        return None
-
-def criar_sprite_fallback(largura, altura, cor):
-    """
-    Cria um sprite de fallback (retângulo colorido) quando o sprite não está disponível.
-
-    Args:
-        largura (int): Largura do sprite
-        altura (int): Altura do sprite
-        cor (tuple): Cor RGB do sprite
-
-    Returns:
-        pygame.Surface: Sprite de fallback
-    """
-    sprite = pygame.Surface((largura, altura))
-    sprite.fill(cor)
-    return sprite
-
 class EfeitoExplosao:
     """
     Classe para representar efeitos de explosão quando projéteis colidem.
@@ -108,9 +48,6 @@ class EfeitoExplosao:
         self.__tempo_vida = 300  # milissegundos
         self.__tempo_criacao = pygame.time.get_ticks()
         self.__ativo = True
-
-        # Carrega sprite de explosão ou usa fallback
-        self.__sprite = carregar_sprite("explosion.png", tamanho, tamanho)
 
         # Cores para efeito de fallback (gradiente de explosão)
         self.__cores_explosao = [
@@ -163,12 +100,6 @@ class EfeitoExplosao:
         """Getter para status ativo da explosão (somente leitura)."""
         return self.__ativo
 
-    # Properties para sprite (somente leitura)
-    @property
-    def sprite(self):
-        """Getter para sprite da explosão (somente leitura)."""
-        return self.__sprite
-
     # Properties para cores_explosao (somente leitura)
     @property
     def cores_explosao(self) -> list:
@@ -190,3 +121,19 @@ class EfeitoExplosao:
             progresso = tempo_decorrido / self.__tempo_vida
             self.__tamanho_atual = self.__tamanho_inicial * (1 + progresso * 0.5)
 
+def carregar_sprite(nome_arquivo, largura, altura):
+    """
+    Carrega uma imagem do diretório static, redimensiona e retorna.
+    Em caso de erro, retorna uma superfície colorida (magenta) como fallback.
+    """
+    caminho = os.path.join("static", nome_arquivo)
+    try:
+        imagem = pygame.image.load(caminho)
+        imagem = pygame.transform.scale(imagem, (largura, altura))
+        return imagem
+    except Exception as e:
+        print(f"Erro ao carregar sprite {nome_arquivo}: {e}")
+        # Fallback: quadrado magenta para indicar erro visualmente sem crashar
+        surface = pygame.Surface((largura, altura))
+        surface.fill((255, 0, 255))
+        return surface

@@ -1,5 +1,5 @@
 import pygame
-from utils import carregar_sprite, VELOCIDADE_JOGADOR, LARGURA_TELA, ALTURA_TELA
+from utils import VELOCIDADE_JOGADOR, LARGURA_TELA, ALTURA_TELA
 
 class Jogador:
     """
@@ -27,9 +27,6 @@ class Jogador:
         self.__velocidade = VELOCIDADE_JOGADOR
         self.__rect = pygame.Rect(x, y, largura, altura)
         self.__tiros = []
-
-        # Carrega sprite do jogador
-        self.__sprite = carregar_sprite("player_ship.png", largura, altura)
 
     # Properties para X (com validação de limites da tela)
     @property
@@ -141,9 +138,4 @@ class Jogador:
         """Método para limpar todos os tiros."""
         self.__tiros.clear()
 
-    # Properties para sprite (somente leitura)
-    @property
-    def sprite(self):
-        """Getter para sprite do jogador (somente leitura)."""
-        return self.__sprite
 

@@ -1,5 +1,5 @@
 import pygame
-from utils import carregar_sprite, COR_TIRO, COR_TIRO_INIMIGO, LARGURA_TELA, ALTURA_TELA
+from utils import COR_TIRO, COR_TIRO_INIMIGO, LARGURA_TELA, ALTURA_TELA
 
 class Projetil:
     """
@@ -30,10 +30,8 @@ class Projetil:
 
         # Carrega sprite apropriado baseado no tipo
         if eh_inimigo:
-            self.__sprite = carregar_sprite("bullet_enemy.png", largura, altura)
             self.__cor_fallback = COR_TIRO_INIMIGO
         else:
-            self.__sprite = carregar_sprite("bullet_player.png", largura, altura)
             self.__cor_fallback = COR_TIRO
 
     # Properties para X (com validação)
@@ -89,12 +87,6 @@ class Projetil:
     def eh_inimigo(self) -> bool:
         """Getter para tipo do projétil (somente leitura)."""
         return self.__eh_inimigo
-
-    # Properties para sprite (somente leitura)
-    @property
-    def sprite(self):
-        """Getter para sprite do projétil (somente leitura)."""
-        return self.__sprite
 
     # Properties para cor_fallback (somente leitura)
     @property
