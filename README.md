@@ -167,11 +167,18 @@ utils.py                  → Utilitários e constantes
 
 ### Instalação e Execução
 ```bash
-# Instalar dependências
-pip install pygame
+# 1) Criar/ativar ambiente virtual (opcional, mas recomendado)
+python -m venv .venv
+source .venv/bin/activate  # no Windows: .venv\Scripts\activate
 
-# Executar o jogo
-python main.py
+# 2) Instalar dependências
+pip install -r requirements.txt
+
+# 3) Executar o jogo local (pygame)
+python -m space_invaders.desktop
+
+# 4) (Opcional) Executar o webservice Flask + Socket.IO
+python -m space_invaders.web.main
 ```
 
 ### Controles
