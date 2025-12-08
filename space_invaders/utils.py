@@ -1,54 +1,102 @@
-import pygame
-import os
+# ============================================================================
+# ARQUIVO UTILS.PY - CONSTANTES E CLASSES UTILITÁRIAS
+# ============================================================================
+"""
+PROPÓSITO:
+Este arquivo centraliza CONSTANTES e CLASSES UTILITÁRIAS usadas em todo o jogo.
 
-# Constantes do jogo
-LARGURA_TELA = 800
-ALTURA_TELA = 600
-COR_FUNDO = (0, 0, 0)      # Preto
-COR_JOGADOR = (0, 255, 0)  # Verde
-COR_INIMIGO = (255, 0, 0)  # Vermelho
-COR_TIRO = (255, 255, 0)   # Amarelo
-COR_TIRO_INIMIGO = (255, 100, 100)  # Vermelho claro para tiros inimigos
-VELOCIDADE_JOGADOR = 5
-VELOCIDADE_TIRO = 7
-VELOCIDADE_INIMIGO = 2
+PRINCÍPIO DE POO:
+- CENTRALIZAÇÃO: Todas as constantes em um único lugar
+- MANUTENIBILIDADE: Fácil modificar valores do jogo
+- REUTILIZAÇÃO: Importado por todas as outras classes
+"""
 
-# Cores para interface
-COR_TEXTO = (255, 255, 255)  # Branco
-COR_TEXTO_SELECIONADO = (255, 255, 0)  # Amarelo
-COR_TITULO = (0, 255, 255)  # Ciano
+import pygame  # Biblioteca para desenvolvimento de jogos
+import os      # Para manipulação de caminhos de arquivos
 
-# Estados do jogo
-ESTADO_MENU = 0
-ESTADO_JOGANDO = 1
-ESTADO_GAME_OVER = 2
+# ============================================================================
+# CONSTANTES DO JOGO - CONFIGURAÇÕES PRINCIPAIS
+# ============================================================================
+# Dimensões da tela
+LARGURA_TELA = 800  # Largura da janela do jogo em pixels
+ALTURA_TELA = 600   # Altura da janela do jogo em pixels
 
+# Cores RGB (Red, Green, Blue) - valores de 0 a 255
+COR_FUNDO = (0, 0, 0)              # Preto - cor de fundo do jogo
+COR_JOGADOR = (0, 255, 0)          # Verde - cor da nave do jogador
+COR_INIMIGO = (255, 0, 0)          # Vermelho - cor dos inimigos
+COR_TIRO = (255, 255, 0)           # Amarelo - cor dos tiros do jogador
+COR_TIRO_INIMIGO = (255, 100, 100) # Vermelho claro - tiros dos inimigos
+
+# Velocidades de movimento (pixels por frame)
+VELOCIDADE_JOGADOR = 5  # Velocidade de movimento da nave do jogador
+VELOCIDADE_TIRO = 7     # Velocidade dos projéteis
+VELOCIDADE_INIMIGO = 2  # Velocidade lateral dos inimigos
+
+# ============================================================================
+# CONSTANTES DE INTERFACE - CORES DE TEXTO E MENUS
+# ============================================================================
+COR_TEXTO = (255, 255, 255)           # Branco - texto normal
+COR_TEXTO_SELECIONADO = (255, 255, 0) # Amarelo - opção selecionada no menu
+COR_TITULO = (0, 255, 255)            # Ciano - títulos
+
+# ============================================================================
+# CONSTANTES DE ESTADO - MÁQUINA DE ESTADOS DO JOGO
+# ============================================================================
+# O jogo usa uma MÁQUINA DE ESTADOS para controlar fluxo
+ESTADO_MENU = 0       # Estado: exibindo menu principal
+ESTADO_JOGANDO = 1    # Estado: jogando (gameplay ativo)
+ESTADO_GAME_OVER = 2  # Estado: game over (fim de jogo)
+
+# ============================================================================
+# CLASSE EFEITOEXPLOSAO - EFEITO VISUAL
+# ============================================================================
 class EfeitoExplosao:
     """
-    Classe para representar efeitos de explosão quando projéteis colidem.
-    Implementa encapsulamento completo dos atributos com properties.
-    Segue os princípios das aulas do Dr. Edson Nascimento.
+    ========================================================================
+    CLASSE EFEITOEXPLOSAO - EFEITO VISUAL TEMPORÁRIO
+    ========================================================================
+
+    PROPÓSITO:
+    Representa um efeito visual de explosão quando projéteis colidem.
+    Efeito temporário que cresce e desaparece após um tempo.
+
+    PRINCÍPIOS DE POO:
+    1. ENCAPSULAMENTO: Atributos privados com properties
+    2. COESÃO: Responsabilidade única - gerenciar efeito de explosão
+    3. ABSTRAÇÃO: Esconde lógica de tempo e animação
+
+    RELACIONAMENTOS:
+    - USADO POR: ProjetilBusiness (cria explosões em colisões)
+    - USADO POR: Jogo (renderiza explosões)
+
+    ATRIBUTOS:
+    - Posição (x, y)
+    - Tamanho (inicial e atual)
+    - Tempo de vida e criação
+    - Estado ativo/inativo
+    - Sprite opcional
+    ========================================================================
     """
 
     def __init__(self, x: int, y: int, tamanho: int = 20):
         """
-        Construtor da classe EfeitoExplosao.
-        Inicializa os atributos privados do efeito.
+        CONSTRUTOR DA CLASSE EFEITOEXPLOSAO
 
         Args:
             x (int): Posição horizontal da explosão
             y (int): Posição vertical da explosão
-            tamanho (int): Tamanho inicial da explosão
+            tamanho (int): Tamanho inicial da explosão em pixels
         """
-        # Atributos privados (encapsulamento)
+        # ENCAPSULAMENTO: Atributos privados
         self.__x = x
         self.__y = y
         self.__tamanho_inicial = tamanho
         self.__tamanho_atual = tamanho
-        self.__tempo_vida = 300  # milissegundos
-        self.__tempo_criacao = pygame.time.get_ticks()
-        self.__ativo = True
-        self.__sprite = None
+        self.__tempo_vida = 300  # Duração em milissegundos
+        self.__tempo_criacao = pygame.time.get_ticks()  # Momento da criação
+        self.__ativo = True      # Explosão está ativa
+        self.__sprite = None     # Sprite opcional para renderização
 
         # Cores para efeito de fallback (gradiente de explosão)
         self.__cores_explosao = [
@@ -59,84 +107,94 @@ class EfeitoExplosao:
             (128, 0, 0)       # Vermelho escuro
         ]
 
-    # Properties para X (somente leitura)
+    # ========================================================================
+    # PROPERTIES SOMENTE LEITURA - ENCAPSULAMENTO
+    # ========================================================================
     @property
     def x(self) -> int:
-        """Getter para posição X da explosão (somente leitura)."""
+        """Posição X da explosão (somente leitura)"""
         return self.__x
 
-    # Properties para Y (somente leitura)
     @property
     def y(self) -> int:
-        """Getter para posição Y da explosão (somente leitura)."""
+        """Posição Y da explosão (somente leitura)"""
         return self.__y
 
-    # Properties para tamanho_inicial (somente leitura)
     @property
     def tamanho_inicial(self) -> int:
-        """Getter para tamanho inicial da explosão (somente leitura)."""
+        """Tamanho inicial da explosão (somente leitura)"""
         return self.__tamanho_inicial
 
-    # Properties para tamanho_atual (somente leitura)
     @property
     def tamanho_atual(self) -> float:
-        """Getter para tamanho atual da explosão (somente leitura)."""
+        """Tamanho atual - cresce com animação (somente leitura)"""
         return self.__tamanho_atual
 
-    # Properties para tempo_vida (somente leitura)
     @property
     def tempo_vida(self) -> int:
-        """Getter para tempo de vida da explosão (somente leitura)."""
+        """Duração da explosão em ms (somente leitura)"""
         return self.__tempo_vida
 
-    # Properties para tempo_criacao (somente leitura)
     @property
     def tempo_criacao(self) -> int:
-        """Getter para tempo de criação da explosão (somente leitura)."""
+        """Momento de criação (somente leitura)"""
         return self.__tempo_criacao
 
-    # Properties para ativo (somente leitura)
     @property
     def ativo(self) -> bool:
-        """Getter para status ativo da explosão (somente leitura)."""
+        """Status ativo da explosão (somente leitura)"""
         return self.__ativo
 
-    # Properties para cores_explosao (somente leitura)
     @property
     def cores_explosao(self) -> list:
-        """Getter para cores da explosão (retorna cópia para proteção)."""
+        """Lista de cores do gradiente (retorna cópia - ENCAPSULAMENTO)"""
         return self.__cores_explosao.copy()
 
-    # Property para sprite (permite injeção de superfície pelo controlador)
     @property
     def sprite(self):
-        """Getter para sprite da explosão (pode ser None)."""
+        """Sprite da explosão - AGREGAÇÃO (pode ser None)"""
         return self.__sprite
 
     @sprite.setter
     def sprite(self, surface):
-        """Setter para sprite da explosão (aceita Surface ou None)."""
+        """Define sprite - INJEÇÃO DE DEPENDÊNCIA"""
         self.__sprite = surface
 
+    # ========================================================================
+    # MÉTODOS PÚBLICOS - LÓGICA DE ANIMAÇÃO
+    # ========================================================================
     def atualizar(self):
         """
-        Atualiza o efeito de explosão.
-        Modifica atributos internos de forma controlada.
+        LÓGICA: Atualiza animação da explosão
+        - Verifica se tempo expirou
+        - Aumenta tamanho progressivamente
         """
         tempo_atual = pygame.time.get_ticks()
         tempo_decorrido = tempo_atual - self.__tempo_criacao
 
         if tempo_decorrido >= self.__tempo_vida:
-            self.__ativo = False
+            self.__ativo = False  # Desativa explosão
         else:
-            # Efeito de expansão e fade
+            # Efeito de expansão progressiva
             progresso = tempo_decorrido / self.__tempo_vida
             self.__tamanho_atual = self.__tamanho_inicial * (1 + progresso * 0.5)
 
+# ============================================================================
+# FUNÇÕES UTILITÁRIAS - CARREGAMENTO DE RECURSOS
+# ============================================================================
 def carregar_sprite(nome_arquivo, largura, altura):
     """
-    Carrega uma imagem do diretório static, redimensiona e retorna.
-    Em caso de erro, retorna uma superfície colorida (magenta) como fallback.
+    Carrega e redimensiona sprite do diretório static
+
+    TRATAMENTO DE ERROS: Retorna fallback magenta se falhar
+
+    Args:
+        nome_arquivo (str): Nome do arquivo de imagem
+        largura (int): Largura desejada
+        altura (int): Altura desejada
+
+    Returns:
+        pygame.Surface: Imagem carregada ou fallback
     """
     caminho = os.path.join("static", nome_arquivo)
     try:
@@ -145,7 +203,7 @@ def carregar_sprite(nome_arquivo, largura, altura):
         return imagem
     except Exception as e:
         print(f"Erro ao carregar sprite {nome_arquivo}: {e}")
-        # Fallback: quadrado magenta para indicar erro visualmente sem crashar
+        # Fallback: quadrado magenta indica erro visualmente
         surface = pygame.Surface((largura, altura))
-        surface.fill((255, 0, 255))
+        surface.fill((255, 0, 255))  # Magenta
         return surface
