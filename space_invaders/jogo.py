@@ -1,60 +1,125 @@
-import pygame
-import sys
+# ============================================================================
+# JOGO.PY - CONTROLADOR PRINCIPAL (CAMADA DE CONTROLE/APRESENTAÇÃO)
+# ============================================================================
+"""
+PROPÓSITO:
+Este arquivo contém a CAMADA DE CONTROLE do jogo Space Invaders.
+Coordena todas as outras camadas (Dados e Business) e gerencia a interface gráfica.
+
+ARQUITETURA EM CAMADAS:
+- DADOS (Jogador, Inimigo, etc.): O QUE são as entidades
+- NEGÓCIO (JogadorBusiness, etc.): COMO as entidades se comportam
+- CONTROLE (Jogo, Menu, GameOver): QUANDO executar ações e COMO exibir
+
+PADRÃO MVC (Model-View-Controller):
+- Model: Camadas Dados + Business
+- View: Métodos de renderização (desenhar_*)
+- Controller: Classe Jogo (coordena tudo)
+
+CLASSES NESTE ARQUIVO:
+1. Menu: Gerencia menu principal
+2. GameOver: Gerencia tela de game over
+3. Jogo: Controlador principal do jogo
+"""
+
+import pygame  # Biblioteca de jogos
+import sys     # Para sair do programa
+# Importa camada de DADOS (entidades)
 from .Dados.jogador import Jogador
-from .Business.jogador_business import JogadorBusiness
 from .Dados.inimigo import Inimigo
+from .Dados.pontuacao import Pontuacao
+# Importa camada de NEGÓCIO (lógica)
+from .Business.jogador_business import JogadorBusiness
 from .Business.inimigo_business import InimigoBusiness
 from .Business.projetil_business import ProjetilBusiness
-from .Dados.pontuacao import Pontuacao
 from .Business.pontuacao_business import PontuacaoBusiness
+# Importa constantes e utilitários
 from .utils import *
 
+# ============================================================================
+# CLASSE MENU - INTERFACE DE MENU PRINCIPAL
+# ============================================================================
 class Menu:
-    """Classe para gerenciar o menu principal do jogo."""
+    """
+    Gerencia o menu principal do jogo
+
+    RESPONSABILIDADE: Interface de menu (seleção de opções)
+    PADRÃO: Separação de interface (Menu) e lógica (Jogo)
+    """
 
     def __init__(self, tela):
+        """
+        Inicializa o menu
+
+        Args:
+            tela: Superfície pygame para renderização
+        """
         self.tela = tela
-        self.fonte_titulo = pygame.font.Font(None, 72)
-        self.fonte_opcao = pygame.font.Font(None, 48)
-        self.opcao_selecionada = 0
-        self.opcoes = ["INICIAR", "SAIR"]
+        self.fonte_titulo = pygame.font.Font(None, 72)   # Fonte grande para título
+        self.fonte_opcao = pygame.font.Font(None, 48)    # Fonte média para opções
+        self.opcao_selecionada = 0  # Índice da opção atual
+        self.opcoes = ["INICIAR", "SAIR"]  # Lista de opções do menu
 
     def processar_eventos(self):
-        """Processa eventos do menu."""
+        """
+        Processa entrada do usuário no menu
+
+        LÓGICA:
+        - Detecta teclas de navegação (setas, W/S)
+        - Detecta seleção (Enter, Espaço)
+        - Detecta saída (ESC, fechar janela)
+
+        Returns:
+            str: "iniciar", "sair" ou None
+        """
         for evento in pygame.event.get():
+            # Usuário fechou a janela
             if evento.type == pygame.QUIT:
                 return "sair"
+
+            # Usuário pressionou tecla
             if evento.type == pygame.KEYDOWN:
+                # Navegar para cima
                 if evento.key == pygame.K_UP or evento.key == pygame.K_w:
                     self.opcao_selecionada = (self.opcao_selecionada - 1) % len(self.opcoes)
+                # Navegar para baixo
                 elif evento.key == pygame.K_DOWN or evento.key == pygame.K_s:
                     self.opcao_selecionada = (self.opcao_selecionada + 1) % len(self.opcoes)
+                # Selecionar opção
                 elif evento.key == pygame.K_RETURN or evento.key == pygame.K_SPACE:
                     if self.opcao_selecionada == 0:  # INICIAR
                         return "iniciar"
                     elif self.opcao_selecionada == 1:  # SAIR
                         return "sair"
+                # ESC para sair
                 elif evento.key == pygame.K_ESCAPE:
                     return "sair"
         return None
 
     def desenhar(self):
-        """Desenha o menu na tela."""
+        """
+        Renderiza o menu na tela
+
+        RESPONSABILIDADE: Apenas APRESENTAÇÃO (View)
+        Não contém lógica de negócio
+        """
+        # Limpa tela com cor de fundo
         self.tela.fill(COR_FUNDO)
 
-        # Título
+        # Renderiza título
         titulo = self.fonte_titulo.render("SPACE INVADERS", True, COR_TITULO)
         titulo_rect = titulo.get_rect(center=(LARGURA_TELA // 2, 200))
         self.tela.blit(titulo, titulo_rect)
 
-        # Opções do menu
+        # Renderiza opções do menu
         for i, opcao in enumerate(self.opcoes):
+            # Destaca opção selecionada com cor diferente
             cor = COR_TEXTO_SELECIONADO if i == self.opcao_selecionada else COR_TEXTO
             texto = self.fonte_opcao.render(opcao, True, cor)
             texto_rect = texto.get_rect(center=(LARGURA_TELA // 2, 350 + i * 80))
             self.tela.blit(texto, texto_rect)
 
-        # Instruções
+        # Renderiza instruções
         fonte_instrucao = pygame.font.Font(None, 24)
         instrucoes = [
             "Use as setas ou W/S para navegar",
@@ -67,12 +132,27 @@ class Menu:
             texto_rect = texto.get_rect(center=(LARGURA_TELA // 2, 520 + i * 25))
             self.tela.blit(texto, texto_rect)
 
+        # Atualiza display
         pygame.display.flip()
 
+# ============================================================================
+# CLASSE GAMEOVER - INTERFACE DE FIM DE JOGO
+# ============================================================================
 class GameOver:
-    """Classe para gerenciar a tela de game over."""
+    """
+    Gerencia a tela de game over
+
+    RESPONSABILIDADE: Exibir resultado final e opções de reinício
+    """
 
     def __init__(self, tela, pontuacao=0):
+        """
+        Inicializa tela de game over
+
+        Args:
+            tela: Superfície pygame
+            pontuacao (int): Pontuação final do jogador
+        """
         self.tela = tela
         self.fonte_titulo = pygame.font.Font(None, 72)
         self.fonte_texto = pygame.font.Font(None, 48)
@@ -82,15 +162,17 @@ class GameOver:
         self.opcoes = ["JOGAR NOVAMENTE", "MENU PRINCIPAL", "SAIR"]
 
     def processar_eventos(self):
-        """Processa eventos da tela de game over."""
+        """Processa entrada do usuário na tela de game over"""
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 return "sair"
             if evento.type == pygame.KEYDOWN:
+                # Navegação
                 if evento.key == pygame.K_UP or evento.key == pygame.K_w:
                     self.opcao_selecionada = (self.opcao_selecionada - 1) % len(self.opcoes)
                 elif evento.key == pygame.K_DOWN or evento.key == pygame.K_s:
                     self.opcao_selecionada = (self.opcao_selecionada + 1) % len(self.opcoes)
+                # Seleção
                 elif evento.key == pygame.K_RETURN or evento.key == pygame.K_SPACE:
                     if self.opcao_selecionada == 0:  # JOGAR NOVAMENTE
                         return "reiniciar"
@@ -103,15 +185,15 @@ class GameOver:
         return None
 
     def desenhar(self):
-        """Desenha a tela de game over."""
+        """Renderiza tela de game over"""
         self.tela.fill(COR_FUNDO)
 
-        # Título Game Over
+        # Título
         titulo = self.fonte_titulo.render("GAME OVER", True, COR_INIMIGO)
         titulo_rect = titulo.get_rect(center=(LARGURA_TELA // 2, 150))
         self.tela.blit(titulo, titulo_rect)
 
-        # Pontuação
+        # Pontuação final
         pontos = self.fonte_texto.render(f"Pontuação: {self.pontuacao}", True, COR_TEXTO)
         pontos_rect = pontos.get_rect(center=(LARGURA_TELA // 2, 220))
         self.tela.blit(pontos, pontos_rect)
@@ -138,57 +220,108 @@ class GameOver:
 
         pygame.display.flip()
 
+# ============================================================================
+# CLASSE JOGO - CONTROLADOR PRINCIPAL (MVC CONTROLLER)
+# ============================================================================
 class Jogo:
     """
-    Classe principal que gerencia o jogo.
-    Demonstra composição: o jogo é composto por um jogador.
+    ========================================================================
+    CLASSE JOGO - CONTROLADOR PRINCIPAL DO JOGO
+    ========================================================================
+
+    PROPÓSITO:
+    Esta é a classe CONTROLADORA principal que coordena todo o jogo.
+    Implementa o padrão MVC (Model-View-Controller).
+
+    RESPONSABILIDADES:
+    1. COORDENAÇÃO: Gerencia todas as outras classes
+    2. GAME LOOP: Implementa loop principal do jogo
+    3. RENDERIZAÇÃO: Desenha todos os elementos na tela
+    4. ENTRADA: Processa input do usuário
+    5. MÁQUINA DE ESTADOS: Gerencia estados (menu, jogando, game over)
+
+    COMPOSIÇÃO (HAS-A):
+    - Jogo TEM UM Jogador
+    - Jogo TEM VÁRIOS Inimigos
+    - Jogo TEM UMA Pontuacao
+    - Jogo TEM Business classes (delegação de lógica)
+
+    PADRÃO MVC:
+    - MODEL: Dados + Business (lógica)
+    - VIEW: Métodos desenhar_* (renderização)
+    - CONTROLLER: Esta classe (coordena Model e View)
+
+    MÁQUINA DE ESTADOS:
+    - ESTADO_MENU: Exibindo menu
+    - ESTADO_JOGANDO: Gameplay ativo
+    - ESTADO_GAME_OVER: Fim de jogo
+    ========================================================================
     """
 
     def __init__(self):
         """
-        Construtor da classe Jogo.
-        Inicializa a tela e cria uma instância do jogador.
+        CONSTRUTOR - Inicializa o jogo completo
+
+        COMPOSIÇÃO: Cria todos os objetos necessários
+        - Jogador (entidade)
+        - Inimigos (lista de entidades)
+        - Business classes (lógica)
+        - Interface (Menu, GameOver)
         """
+        # Inicializa pygame se necessário
         if not pygame.get_init():
             pygame.init()
+
+        # Cria janela do jogo
         self.tela = pygame.display.set_mode((LARGURA_TELA, ALTURA_TELA))
         pygame.display.set_caption("Space Invaders - Protótipo")
-        self.clock = pygame.time.Clock()
+        self.clock = pygame.time.Clock()  # Controla FPS
         self.rodando = True
 
-        # Estado do jogo
+        # MÁQUINA DE ESTADOS: Estado inicial é o menu
         self.estado = ESTADO_MENU
 
-        # Recursos visuais
+        # Carrega recursos visuais (sprites)
         self._carregar_recursos()
 
-        # Inicializa componentes de interface
+        # COMPOSIÇÃO: Cria componentes de interface
         self.menu = Menu(self.tela)
         self.game_over = None
 
-        # Variáveis do jogo
+        # COMPOSIÇÃO: Cria entidade de pontuação
         self.pontuacao = Pontuacao()
+        # COMPOSIÇÃO: Cria Business de pontuação
         self.pontuacao_business = PontuacaoBusiness(self.pontuacao)
-        self.efeitos_explosao = []
+        self.efeitos_explosao = []  # Lista de efeitos visuais
         self.velocidade_inimigo_base = VELOCIDADE_INIMIGO
 
         # Inicializa componentes do jogo
         self.inicializar_jogo(reset_velocidade=True)
 
-        # Velocidades para movimento
+        # Velocidades de movimento (constantes)
         self.velocidade_jogador = VELOCIDADE_JOGADOR
         self.velocidade_inimigo = VELOCIDADE_INIMIGO
         self.velocidade_tiro = VELOCIDADE_TIRO
 
+    # ========================================================================
+    # MÉTODOS PRIVADOS - INICIALIZAÇÃO
+    # ========================================================================
+
     def _carregar_recursos(self):
-        """Carrega e armazena sprites usados na renderização."""
+        """
+        Carrega sprites (imagens) do jogo
+
+        SEPARAÇÃO: Recursos visuais separados da lógica
+        """
         self.background = carregar_sprite("background.png", LARGURA_TELA, ALTURA_TELA)
         self.sprite_jogador = carregar_sprite("player_ship.png", 50, 30)
+        # Sprites diferentes para cada tipo de inimigo
         self.sprites_inimigos = {
             1: carregar_sprite("invader_type1.png", 40, 25),
             2: carregar_sprite("invader_type2.png", 40, 25),
             3: carregar_sprite("invader_type3.png", 40, 25),
         }
+        # Sprites de projéteis
         self.sprite_projeteis = {
             "jogador": carregar_sprite("bullet_player.png", 6, 15),
             "inimigo": carregar_sprite("bullet_enemy.png", 6, 15),
@@ -196,35 +329,63 @@ class Jogo:
         self.sprite_explosao = carregar_sprite("explosion.png", 32, 32)
 
     def inicializar_jogo(self, reset_velocidade=False):
-        """Inicializa ou reinicializa os componentes do jogo."""
+        """
+        Inicializa ou reinicializa componentes do jogo
+
+        COMPOSIÇÃO EM AÇÃO:
+        - Cria todas as entidades (Jogador, Inimigos)
+        - Cria todas as Business classes
+        - Conecta tudo via composição
+
+        Chamado ao:
+        - Iniciar novo jogo
+        - Reiniciar após game over
+        """
         if reset_velocidade:
             self.velocidade_inimigo_base = VELOCIDADE_INIMIGO
-        # Composição: o jogo contém um jogador
+
+        # COMPOSIÇÃO: Cria jogador e seu business
         self.jogador = Jogador(LARGURA_TELA // 2 - 25, ALTURA_TELA - 50)
-        self.jogador.sprite = self.sprite_jogador
+        self.jogador.sprite = self.sprite_jogador  # AGREGAÇÃO: injeta sprite
         self.jogador_business = JogadorBusiness(self.jogador)
+
+        # COMPOSIÇÃO: Cria inimigos e seu business
         self.inimigos = self.criar_inimigos()
         self.inimigo_business = InimigoBusiness(self.inimigos, velocidade_base=self.velocidade_inimigo_base)
+
+        # Listas de projéteis
         self.projeteis_jogador = []
         self.projeteis_inimigo = []
+
+        # COMPOSIÇÃO: Cria business de projéteis
         self.projetil_business = ProjetilBusiness(
             self.projeteis_jogador,
             self.projeteis_inimigo,
             jogador=self.jogador,
             sprite_explosao=self.sprite_explosao,
         )
+
+        # Reseta pontuação
         self.pontuacao_business.resetar_pontuacao()
 
-        # Tempos para tiros
+        # Controle de tempo para tiros (cooldown)
         self.tempo_ultimo_tiro = 0
-        self.intervalo_tiro = 200  # milissegundos
+        self.intervalo_tiro = 200  # ms entre tiros do jogador
         self.tempo_ultimo_tiro_inimigo = 0
-        self.intervalo_tiro_inimigo = 800  # milissegundos
-        self.max_tiros_inimigos = 5  # Limite de tiros inimigos na tela
+        self.intervalo_tiro_inimigo = 800  # ms entre tiros dos inimigos
+        self.max_tiros_inimigos = 5  # Limite de tiros simultâneos
 
     def criar_inimigos(self):
         """
-        Método para criar uma formação de inimigos.
+        Cria formação de inimigos
+
+        LÓGICA: Cria grid de inimigos em 3 linhas
+        - Linha 1 (topo): Tipo 1 (30 pontos)
+        - Linha 2 (meio): Tipo 2 (20 pontos)
+        - Linha 3 (baixo): Tipo 3 (10 pontos)
+
+        Returns:
+            list: Lista de objetos Inimigo
         """
         inimigos = []
         linhas = 3
@@ -540,16 +701,45 @@ class Jogo:
         instrucoes = fonte_pequena.render("ESC: Menu | WASD/Setas: Mover | Z: Atirar", True, COR_TEXTO)
         self.tela.blit(instrucoes, (10, ALTURA_TELA - 30))
     
+    # ========================================================================
+    # MÉTODO PRINCIPAL - GAME LOOP
+    # ========================================================================
+
     def executar(self):
         """
-        Loop principal do jogo.
-        Demonstra o padrão de game loop: processar eventos, atualizar, desenhar.
+        GAME LOOP PRINCIPAL - Coração do jogo
+
+        PADRÃO GAME LOOP (padrão clássico de jogos):
+        1. PROCESSAR EVENTOS: Lê input do usuário
+        2. ATUALIZAR: Executa lógica do jogo
+        3. DESENHAR: Renderiza tudo na tela
+        4. CONTROLAR FPS: Limita velocidade do loop
+
+        Este padrão se repete 60 vezes por segundo (60 FPS)
+
+        DELEGAÇÃO:
+        - Cada fase delegada para método específico
+        - Mantém executar() simples e legível
+        - Facilita manutenção
+
+        MÁQUINA DE ESTADOS:
+        - Métodos processar/atualizar/desenhar mudam comportamento
+          baseado no estado atual (menu, jogando, game over)
         """
+        # Loop infinito até self.rodando = False
         while self.rodando:
+            # FASE 1: Processa entrada do usuário
             self.processar_eventos()
+
+            # FASE 2: Atualiza lógica do jogo
             self.atualizar()
+
+            # FASE 3: Renderiza tudo na tela
             self.desenhar()
-            self.clock.tick(60)  # 60 FPS
-        
+
+            # FASE 4: Controla FPS (60 frames por segundo)
+            self.clock.tick(60)
+
+        # Finaliza pygame e sai do programa
         pygame.quit()
         sys.exit()

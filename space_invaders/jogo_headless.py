@@ -1,4 +1,29 @@
-import pygame
+# ============================================================================
+# JOGO_HEADLESS.PY - CONTROLADOR SEM INTERFACE GRÁFICA
+# ============================================================================
+"""
+PROPÓSITO:
+Versão HEADLESS (sem cabeça/interface) do jogo Space Invaders.
+Usado para integração WEB - lógica pura sem renderização pygame.
+
+DIFERENÇA ENTRE JOGO.PY E JOGO_HEADLESS.PY:
+- jogo.py: TEM renderização (desenha na tela)
+- jogo_headless.py: SEM renderização (apenas lógica)
+
+USO:
+- Aplicação web (Flask) usa esta versão
+- Lógica roda no servidor
+- Estado é enviado para cliente via JSON
+- Cliente renderiza no navegador
+
+VANTAGEM DA SEPARAÇÃO:
+- MESMA LÓGICA para desktop e web
+- Apenas interface muda
+- Demonstra REUTILIZAÇÃO de código
+"""
+
+import pygame  # Apenas para Rect e time (não para display)
+# Importa mesmas classes que jogo.py
 from .Dados.jogador import Jogador
 from .Business.jogador_business import JogadorBusiness
 from .Dados.inimigo import Inimigo
@@ -8,31 +33,64 @@ from .Dados.pontuacao import Pontuacao
 from .Business.pontuacao_business import PontuacaoBusiness
 from .utils import *
 
+# ============================================================================
+# CLASSE JOGOHEADLESS - CONTROLADOR SEM RENDERIZAÇÃO
+# ============================================================================
 class JogoHeadless:
     """
-    Classe principal que gerencia o jogo em modo headless (sem interface gráfica).
-    Focada apenas na lógica e estado do jogo.
+    ========================================================================
+    CLASSE JOGOHEADLESS - LÓGICA PURA SEM INTERFACE
+    ========================================================================
+
+    PROPÓSITO:
+    Mesma lógica que Jogo, mas SEM renderização gráfica.
+    Usado para aplicação web.
+
+    DIFERENÇAS EM RELAÇÃO A JOGO:
+    - NÃO cria janela pygame
+    - NÃO desenha na tela
+    - NÃO carrega sprites
+    - APENAS processa lógica e estado
+
+    PADRÃO DE DESIGN:
+    - SEPARAÇÃO: Lógica separada de apresentação
+    - REUTILIZAÇÃO: Mesmas classes Dados e Business
+    - ADAPTAÇÃO: Interface diferente, lógica igual
+
+    USO:
+    - Flask (web) cria instância desta classe
+    - Processa comandos do cliente
+    - Retorna estado do jogo em JSON
+    - Cliente renderiza no navegador
+    ========================================================================
     """
 
     def __init__(self):
         """
-        Construtor da classe JogoHeadless.
-        Inicializa os componentes lógicos do jogo.
+        CONSTRUTOR - Inicializa jogo sem interface gráfica
+
+        DIFERENÇA: Não cria tela, não carrega sprites
         """
-        # Inicializa pygame apenas para funcionalidades básicas (como Rect e time)
-        # Não inicializa display ou mixer
+        # Inicializa pygame apenas para funcionalidades básicas
+        # (Rect para colisão, time para controle de tempo)
+        # NÃO inicializa display (tela) ou mixer (som)
         if not pygame.get_init():
             pygame.init()
-            
+
+        # Estado do jogo
         self.rodando = True
         self.game_over = False
         self.pausado = False
         self.estado = ESTADO_MENU
+
+        # Opções de menu (para web)
         self.menu_opcoes = ["JOGAR COM IA", "JOGAR SOLO", "SAIR"]
         self.menu_selecionada = 0
         self.game_over_opcoes = ["JOGAR NOVAMENTE", "MENU PRINCIPAL", "SAIR"]
         self.game_over_selecionada = 0
         self.deseja_sair = False
+
+        # Comandos ativos (controlados pela web)
         self.comandos_ativos = {
             "esquerda": False,
             "direita": False,
@@ -41,22 +99,26 @@ class JogoHeadless:
             "atirar": False
         }
 
-        # Variáveis do jogo
+        # COMPOSIÇÃO: Mesmas entidades que jogo.py
         self.pontuacao = Pontuacao()
         self.pontuacao_business = PontuacaoBusiness(self.pontuacao)
         self.efeitos_explosao = []
         self.velocidade_inimigo_base = VELOCIDADE_INIMIGO
 
-        # Inicializa componentes do jogo
+        # Inicializa componentes
         self.inicializar_jogo(reset_velocidade=True)
 
-        # Velocidades para movimento (mantendo as constantes do utils)
+        # Velocidades (mesmas constantes)
         self.velocidade_jogador = VELOCIDADE_JOGADOR
         self.velocidade_inimigo = VELOCIDADE_INIMIGO
         self.velocidade_tiro = VELOCIDADE_TIRO
 
     def inicializar_jogo(self, reset_velocidade=False):
-        """Inicializa ou reinicializa os componentes do jogo."""
+        """
+        Inicializa componentes do jogo
+
+        MESMA LÓGICA que jogo.py, mas sem sprites
+        """
         if reset_velocidade:
             self.velocidade_inimigo_base = VELOCIDADE_INIMIGO
         self.jogador = Jogador(LARGURA_TELA // 2 - 25, ALTURA_TELA - 50)
