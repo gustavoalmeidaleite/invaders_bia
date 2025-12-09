@@ -1,0 +1,5 @@
+Tornar o `chunk_size` configuravel: mover para `settings.yaml` (ex.: `index.chunk_size`) para evitar magic numbers.
+
+
+
+O nome da coluna do csv a ser transformada em chunks é "text"

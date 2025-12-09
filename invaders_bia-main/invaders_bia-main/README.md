@@ -16,6 +16,8 @@ space_invaders/          ← Pacote principal
     └── main.py          ← Entry point web
 static/                  ← Imagens/sprites
 templates/               ← HTML (frontend web)
+documentacao/            ← Guias e análises
+Referencia/              ← Materiais das aulas
 requirements.txt         ← Dependências
 ```
 

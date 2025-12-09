@@ -1,0 +1,219 @@
+<!--
+================================================================================
+Template: login.html - Página de Autenticação
+================================================================================
+
+DESCRIÇÃO:
+    Página de login do Space Invaders Web. Permite que usuários cadastrados
+    façam autenticação para acessar o jogo.
+
+FUNCIONALIDADES:
+    - Formulário de login com email e senha
+    - Exibição de mensagens de erro (credenciais inválidas)
+    - Exibição de mensagens de sucesso (após cadastro)
+    - Link para página de cadastro
+
+INTEGRAÇÃO COM FLASK:
+    - Rota: GET/POST /login (definida em app.py)
+    - Variáveis Jinja2:
+        * {{ error }} - Mensagem de erro de autenticação
+        * {{ success }} - Mensagem de sucesso (vindo do cadastro)
+    - Ação do formulário: POST /login
+
+ESTILO:
+    - Tema escuro (fundo preto) mantendo a estética do jogo
+    - Fonte monoespaçada (Courier New) estilo arcade
+    - Cores: Ciano para títulos, vermelho para botão de login
+
+FLUXO DO USUÁRIO:
+    1. Usuário acessa /login
+    2. Preenche email e senha
+    3. Clica em "Login"
+    4. Se válido: redireciona para /jogo
+    5. Se inválido: exibe mensagem de erro
+================================================================================
+-->
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Space Invaders</title>
+
+    <!-- ================================================================
+         ESTILOS CSS - Tema escuro estilo arcade
+         ================================================================ -->
+    <style>
+        /* Reset básico para consistência entre navegadores */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Container principal - centraliza conteúdo na tela */
+        body {
+            background-color: #000;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: 'Courier New', Courier, monospace;
+            /* Fonte estilo arcade */
+        }
+
+        /* Caixa do formulário de login */
+        .container {
+            background-color: #111;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 350px;
+        }
+
+        /* Grupo de campos do formulário */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Labels dos campos */
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ccc;
+            font-size: 16px;
+        }
+
+        /* Campos de input (email e senha) */
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: none;
+            background-color: #ccc;
+            color: #000;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        /* Botão de login - estilo arcade */
+        .btn-login {
+            background: none;
+            border: none;
+            color: #ff0000;
+            /* Vermelho chamativo */
+            font-size: 32px;
+            font-family: 'Courier New', Courier, monospace;
+            cursor: pointer;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        /* Efeito hover no botão */
+        .btn-login:hover {
+            color: #ff5555;
+            /* Vermelho mais claro */
+        }
+
+        /* Link para cadastro */
+        .link {
+            color: #aaa;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+
+        .link a {
+            color: #aaa;
+            text-decoration: none;
+        }
+
+        .link a:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+
+        /* Mensagem de erro (credenciais inválidas) */
+        .error {
+            color: #ff5555;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        /* Mensagem de sucesso (após cadastro) */
+        .success {
+            color: #55ff55;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        /* Título principal - estilo Space Invaders */
+        .titulo {
+            color: #0ff;
+            /* Ciano */
+            font-size: 36px;
+            font-style: italic;
+            margin-bottom: 5px;
+        }
+
+        /* Subtítulo - versão do jogo */
+        .subtitulo {
+            color: #0ff;
+            /* Ciano */
+            font-size: 32px;
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ================================================================
+         CONTAINER PRINCIPAL - Formulário de Login
+         ================================================================ -->
+    <div class="container">
+        <!-- Cabeçalho com nome do jogo -->
+        <h1 class="titulo">SPACE INVADERS:</h1>
+        <h2 class="subtitulo">BIA VERSION</h2>
+
+        <!-- ============================================================
+             MENSAGENS DE FEEDBACK (Jinja2)
+             - error: Exibida quando login falha
+             - success: Exibida após cadastro bem-sucedido
+             ============================================================ -->
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+        {% if success %}
+        <div class="success">{{ success }}</div>
+        {% endif %}
+
+        <!-- ============================================================
+             FORMULÁRIO DE LOGIN
+             - Método: POST
+             - Ação: /login (processada em app.py)
+             - Campos: email e senha (ambos obrigatórios)
+             ============================================================ -->
+        <form method="POST" action="/login">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label>Senha</label>
+                <input type="password" name="senha" required>
+            </div>
+            <button type="submit" class="btn-login">Login</button>
+        </form>
+
+        <!-- Link para página de cadastro -->
+        <div class="link">
+            Não tem login? <a href="/cadastro">Faça seu cadastro</a>
+        </div>
+    </div>
+</body>
+
+</html>
